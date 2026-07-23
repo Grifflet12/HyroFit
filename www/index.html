@@ -6,7 +6,7 @@
 <title>HyroFit — Calorie, Macro &amp; Meal Planner</title>
 <meta name="description" content="Calculate your calories and macros, generate a weekly meal plan and shopping list, and scan barcodes to log food.">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#2f6f4e">
+<meta name="theme-color" content="#ff5a2b">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="mobile-web-app-capable" content="yes">
@@ -17,19 +17,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f5f6f1;
+  --bg:#f3f4f1;
   --card:#ffffff;
-  --ink:#17241c;
-  --ink-soft:#4b5850;
-  --line:#dee3d7;
-  --primary:#2f6f4e;
-  --primary-dark:#204d37;
-  --carb:#c1440e;
-  --fat:#c9962a;
-  --protein:#2f6f4e;
-  --danger:#b3261e;
-  --radius:14px;
-  --shadow:0 1px 2px rgba(23,36,28,.06), 0 8px 24px -12px rgba(23,36,28,.12);
+  --ink:#13161a;
+  --ink-soft:#6b7280;
+  --line:#e6e7e2;
+  --tint:#f2efec;
+  --primary:#ff5a2b;
+  --primary-dark:#d9430f;
+  --primary-tint:#ffe8dd;
+  --carb:#2f80ed;
+  --fat:#e0a800;
+  --protein:#ff5a2b;
+  --danger:#dc2626;
+  --radius:18px;
+  --shadow:0 1px 2px rgba(19,22,26,.05), 0 10px 28px -14px rgba(19,22,26,.16);
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
@@ -38,7 +40,7 @@ body{
   color:var(--ink);
   font-family:'Inter',system-ui,sans-serif;
   -webkit-font-smoothing:antialiased;
-  padding-bottom:84px;
+  padding-bottom:90px;
 }
 h1,h2,h3,.display{font-family:'Fraunces',serif;letter-spacing:-.01em;}
 .mono{font-family:'IBM Plex Mono',monospace;}
@@ -50,17 +52,22 @@ button{font-family:inherit;}
   position:sticky;top:0;z-index:20;
   background:var(--bg);
   border-bottom:1px solid var(--line);
-  padding:14px 18px 10px;
+  padding:16px 18px 12px;
 }
 .topbar .brand{
-  display:flex;align-items:baseline;gap:8px;
+  display:flex;align-items:center;gap:9px;
 }
 .topbar .brand .mark{
-  width:10px;height:10px;border-radius:3px;background:var(--primary);
-  display:inline-block;transform:rotate(45deg);
+  width:22px;height:22px;border-radius:7px;
+  background:linear-gradient(135deg, var(--primary), var(--primary-dark));
+  display:inline-flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 10px -3px rgba(255,90,43,.55);
 }
-.topbar h1{font-size:20px;margin:0;font-weight:600;}
-.topbar .sub{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+.topbar .brand .mark::after{
+  content:'';width:8px;height:8px;border-radius:2px;background:#fff;transform:rotate(45deg);
+}
+.topbar h1{font-size:21px;margin:0;font-weight:700;letter-spacing:-.02em;}
+.topbar .sub{font-size:12px;color:var(--ink-soft);margin-top:3px;}
 
 main{max-width:640px;margin:0 auto;padding:16px;}
 .view{display:none;animation:fade .25s ease;}
@@ -71,89 +78,94 @@ main{max-width:640px;margin:0 auto;padding:16px;}
   background:var(--card);
   border:1px solid var(--line);
   border-radius:var(--radius);
-  padding:18px;
+  padding:20px;
   margin-bottom:14px;
   box-shadow:var(--shadow);
 }
-.card h2{font-size:16px;margin:0 0 12px;font-weight:600;}
-.card h2 .eyebrow{display:block;font-family:'Inter';font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);font-weight:600;margin-bottom:2px;}
+.card h2{font-size:17px;margin:0 0 12px;font-weight:700;letter-spacing:-.01em;}
+.card h2 .eyebrow{display:block;font-family:'Inter';font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--primary);font-weight:700;margin-bottom:3px;}
 
 label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin:10px 0 4px;}
 input,select{
-  width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;
-  font-size:15px;background:#fbfcfa;color:var(--ink);font-family:inherit;
+  width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:11px;
+  font-size:15px;background:var(--tint);color:var(--ink);font-family:inherit;
+  transition:border-color .15s, background .15s;
 }
-input:focus,select:focus{outline:2px solid var(--primary);outline-offset:1px;}
+input:focus,select:focus{outline:none;border-color:var(--primary);background:#fff;}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
 
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  padding:11px 16px;border-radius:10px;border:1px solid var(--primary);
-  background:var(--primary);color:#fff;font-weight:600;font-size:14px;cursor:pointer;
-  width:100%;margin-top:14px;
+  padding:13px 16px;border-radius:12px;border:none;
+  background:var(--primary);color:#fff;font-weight:700;font-size:14.5px;cursor:pointer;
+  width:100%;margin-top:14px;letter-spacing:-.01em;
+  box-shadow:0 6px 16px -8px rgba(255,90,43,.6);
+  transition:transform .1s, box-shadow .1s;
 }
-.btn:active{transform:translateY(1px);}
-.btn.secondary{background:transparent;color:var(--primary);}
-.btn.ghost{background:transparent;color:var(--ink-soft);border-color:var(--line);}
-.btn.danger{background:transparent;color:var(--danger);border-color:var(--danger);}
-.btn.small{width:auto;padding:7px 12px;font-size:12px;margin-top:0;}
+.btn:active{transform:translateY(1px) scale(.99);box-shadow:0 3px 8px -4px rgba(255,90,43,.5);}
+.btn.secondary{background:var(--primary-tint);color:var(--primary-dark);box-shadow:none;}
+.btn.ghost{background:transparent;color:var(--ink-soft);border:1.5px solid var(--line);box-shadow:none;}
+.btn.danger{background:transparent;color:var(--danger);border:1.5px solid var(--danger);box-shadow:none;}
+.btn.small{width:auto;padding:8px 14px;font-size:12.5px;margin-top:0;border-radius:9px;}
 
 .formula{
-  font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:#f0f2ea;
-  border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--ink-soft);
+  font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:var(--tint);
+  border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--ink-soft);
   margin-top:8px;line-height:1.6;
 }
 
 /* ---------- Dial ---------- */
-.dial-wrap{display:flex;align-items:center;gap:18px;}
+.dial-wrap{display:flex;align-items:center;gap:20px;}
 canvas#dial{flex-shrink:0;}
 .dial-legend{flex:1;}
-.legend-row{display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:4px 0;}
-.legend-row .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:7px;}
-.legend-row .val{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+.legend-row{display:flex;align-items:center;justify-content:space-between;font-size:13.5px;padding:5px 0;}
+.legend-row .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:8px;}
+.legend-row .val{font-family:'IBM Plex Mono',monospace;font-weight:700;}
 
 /* ---------- Tabs / bottom nav ---------- */
 .tabbar{
   position:fixed;bottom:0;left:0;right:0;z-index:30;
-  background:var(--card);border-top:1px solid var(--line);
-  display:flex;justify-content:space-around;padding:8px 4px calc(8px + env(safe-area-inset-bottom));
+  background:var(--ink);
+  display:flex;justify-content:space-around;padding:10px 4px calc(10px + env(safe-area-inset-bottom));
+  box-shadow:0 -8px 24px -12px rgba(0,0,0,.35);
 }
 .tab{
-  background:none;border:none;color:var(--ink-soft);font-size:10.5px;font-weight:600;
-  display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;
-  padding:4px 6px;border-radius:8px;letter-spacing:.02em;
+  background:none;border:none;color:#7b8087;font-size:10.5px;font-weight:600;
+  display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;
+  padding:6px 10px;border-radius:12px;letter-spacing:.02em;
+  transition:background .15s, color .15s;
 }
-.tab svg{width:20px;height:20px;stroke:var(--ink-soft);fill:none;stroke-width:1.8;}
-.tab.active{color:var(--primary);}
+.tab svg{width:20px;height:20px;stroke:#7b8087;fill:none;stroke-width:1.8;transition:stroke .15s;}
+.tab.active{color:#fff;background:rgba(255,90,43,.18);}
 .tab.active svg{stroke:var(--primary);}
 
 /* ---------- Day plan ---------- */
 .day-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:6px;}
 .day-tabs button{
-  flex-shrink:0;border:1px solid var(--line);background:var(--card);
-  padding:7px 13px;border-radius:20px;font-size:12.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;
+  flex-shrink:0;border:1.5px solid var(--line);background:var(--card);
+  padding:7px 14px;border-radius:20px;font-size:12.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;
 }
-.day-tabs button.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+.day-tabs button.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 4px 12px -6px rgba(255,90,43,.6);}
 
-.meal{border-bottom:1px solid var(--line);padding:12px 0;}
+.meal{border-bottom:1px solid var(--line);padding:13px 0;}
 .meal:last-child{border-bottom:none;}
 .meal-head{display:flex;justify-content:space-between;align-items:baseline;}
-.meal-head .name{font-weight:600;font-size:14px;}
+.meal-head .name{font-weight:700;font-size:14.5px;}
 .meal-head .kcal{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--ink-soft);}
 .ingredient{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-soft);padding:3px 0;}
 .ingredient .g{font-family:'IBM Plex Mono',monospace;}
 .macro-strip{display:flex;gap:12px;margin-top:6px;font-size:11.5px;color:var(--ink-soft);}
 .macro-strip span b{color:var(--ink);}
 
-.day-summary{display:flex;justify-content:space-between;background:#f0f2ea;border-radius:9px;padding:10px 14px;margin-top:4px;font-size:12.5px;}
-.day-summary div b{display:block;font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--ink);}
+.day-summary{display:flex;justify-content:space-between;background:var(--tint);border-radius:12px;padding:12px 15px;margin-top:6px;font-size:12.5px;}
+.day-summary div b{display:block;font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--ink);}
 
 /* ---------- Shopping list ---------- */
-.cat-title{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);font-weight:700;margin:16px 0 6px;}
+.cat-title{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--primary);font-weight:700;margin:16px 0 6px;}
 .cat-title:first-child{margin-top:0;}
-.shop-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);}
-.shop-item input[type=checkbox]{width:18px;height:18px;flex-shrink:0;accent-color:var(--primary);}
+.shop-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);}
+.shop-item input[type=checkbox]{width:19px;height:19px;flex-shrink:0;accent-color:var(--primary);}
 .shop-item .name{flex:1;font-size:14.5px;}
 .shop-item .qty{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--ink-soft);}
 .shop-item.checked .name{text-decoration:line-through;color:var(--ink-soft);}
@@ -161,39 +173,40 @@ canvas#dial{flex-shrink:0;}
 /* ---------- Scanner ---------- */
 #reader{width:100%;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);}
 .scan-result{display:flex;gap:12px;align-items:center;}
-.scan-result img{width:56px;height:56px;object-fit:cover;border-radius:8px;background:#eee;}
-.pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:#e7ede1;color:var(--primary-dark);}
+.scan-result img{width:56px;height:56px;object-fit:cover;border-radius:10px;background:#eee;}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--primary-tint);color:var(--primary-dark);}
 .ocr-status{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:var(--ink-soft);}
 .ocr-spinner{width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.ocr-raw-text{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);background:#f0f2ea;border-radius:8px;padding:8px 10px;margin-top:8px;max-height:110px;overflow-y:auto;white-space:pre-wrap;}
+.ocr-raw-text{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);background:var(--tint);border-radius:10px;padding:8px 10px;margin-top:8px;max-height:110px;overflow-y:auto;white-space:pre-wrap;}
 
 /* ---------- Food DB list ---------- */
-.food-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);}
-.food-row .fname{font-size:14px;font-weight:600;}
+.food-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);}
+.food-row .fname{font-size:14px;font-weight:700;}
 .food-row .fmacro{font-size:11.5px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;}
 .search{margin-bottom:10px;}
 .empty{text-align:center;color:var(--ink-soft);font-size:13.5px;padding:28px 10px;}
 .toast{
-  position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
-  background:var(--ink);color:#fff;padding:10px 18px;border-radius:30px;font-size:13px;
+  position:fixed;bottom:96px;left:50%;transform:translateX(-50%);
+  background:var(--ink);color:#fff;padding:11px 20px;border-radius:30px;font-size:13px;font-weight:600;
   z-index:50;opacity:0;transition:opacity .25s;pointer-events:none;
+  box-shadow:0 10px 28px -10px rgba(0,0,0,.4);
 }
 .toast.show{opacity:1;}
 
 /* ---------- Monetization: ads, affiliate, paywall ---------- */
 .ad-slot{
-  border:1px dashed var(--line);border-radius:10px;padding:10px;margin-bottom:14px;
-  text-align:center;color:var(--ink-soft);font-size:11px;background:#fbfcfa;
+  border:1.5px dashed var(--line);border-radius:12px;padding:10px;margin-bottom:14px;
+  text-align:center;color:var(--ink-soft);font-size:11px;background:var(--tint);
   min-height:90px;display:flex;align-items:center;justify-content:center;
 }
 .ad-slot.hidden{display:none;}
 
-.affiliate-card{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);}
+.affiliate-card{display:flex;gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid var(--line);}
 .affiliate-card:last-child{border-bottom:none;}
-.affiliate-card img{width:52px;height:52px;border-radius:8px;object-fit:cover;background:#eee;flex-shrink:0;}
+.affiliate-card img{width:52px;height:52px;border-radius:10px;object-fit:cover;background:#eee;flex-shrink:0;}
 .affiliate-card .aff-body{flex:1;}
-.affiliate-card .aff-name{font-weight:600;font-size:13.5px;}
+.affiliate-card .aff-name{font-weight:700;font-size:13.5px;}
 .affiliate-card .aff-note{font-size:12px;color:var(--ink-soft);}
 .affiliate-card .btn{width:auto;margin-top:6px;padding:6px 12px;font-size:12px;}
 .aff-disclosure{font-size:10.5px;color:var(--ink-soft);margin-top:8px;font-style:italic;}
@@ -207,40 +220,40 @@ canvas#dial{flex-shrink:0;}
   pointer-events:none;
 }
 .lock-cta{
-  text-align:center;padding:16px;border:1px solid var(--line);border-radius:12px;
-  background:#f0f2ea;margin-top:8px;
+  text-align:center;padding:18px;border:1px solid var(--line);border-radius:14px;
+  background:var(--tint);margin-top:8px;
 }
 .lock-cta .lock-title{font-weight:700;font-size:14px;margin-bottom:4px;}
 .lock-cta .lock-sub{font-size:12.5px;color:var(--ink-soft);margin-bottom:10px;}
 
 .plan-card{
-  border:1px solid var(--line);border-radius:var(--radius);padding:18px;background:var(--card);
+  border:1.5px solid var(--line);border-radius:var(--radius);padding:20px;background:var(--card);
   text-align:center;position:relative;box-shadow:var(--shadow);
 }
 .plan-card.featured{border-color:var(--primary);border-width:2px;}
 .plan-card .badge{
   display:inline-block;background:var(--primary);color:#fff;font-size:10.5px;font-weight:700;
-  padding:2px 10px;border-radius:20px;margin-bottom:8px;letter-spacing:.03em;text-transform:uppercase;
+  padding:3px 11px;border-radius:20px;margin-bottom:8px;letter-spacing:.03em;text-transform:uppercase;
 }
-.plan-card .price{font-family:'IBM Plex Mono',monospace;font-size:32px;font-weight:600;margin:4px 0;}
+.plan-card .price{font-family:'IBM Plex Mono',monospace;font-size:32px;font-weight:700;margin:4px 0;}
 .plan-card .price span{font-size:13px;color:var(--ink-soft);font-family:'Inter';}
 .plan-card ul{list-style:none;padding:0;margin:14px 0;text-align:left;font-size:13.5px;}
 .plan-card ul li{padding:5px 0;padding-left:22px;position:relative;color:var(--ink-soft);}
 .plan-card ul li::before{content:'✓';position:absolute;left:0;color:var(--primary);font-weight:700;}
 .plan-card ul li.locked::before{content:'—';color:var(--line);}
-.status-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:#e7ede1;color:var(--primary-dark);display:inline-block;}
+.status-badge{font-size:11px;font-weight:700;padding:4px 11px;border-radius:20px;background:var(--primary-tint);color:var(--primary-dark);display:inline-block;}
 
 /* ---------- Meal editor ---------- */
 .meal-head .edit-btn{background:none;border:none;color:var(--primary);font-size:12px;font-weight:700;cursor:pointer;padding:2px 4px;}
 .custom-dot{width:6px;height:6px;border-radius:50%;background:var(--carb);display:inline-block;margin-left:4px;vertical-align:middle;}
 .ingredient .rm{background:none;border:none;color:var(--danger);font-size:15px;cursor:pointer;padding:0 4px;line-height:1;}
-.meal-edit-panel{background:#f7f8f4;border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:8px;}
+.meal-edit-panel{background:var(--tint);border:1px solid var(--line);border-radius:12px;padding:13px;margin-top:8px;}
 .food-search-input{margin:0 0 6px;}
 .food-result-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;}
 .food-result-row:last-child{border-bottom:none;}
 .food-result-row .fr-name{flex:1;}
 .food-result-row .fr-macro{font-size:11px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;margin-right:8px;}
-.food-result-row button{background:var(--primary);color:#fff;border:none;border-radius:7px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer;}
+.food-result-row button{background:var(--primary);color:#fff;border:none;border-radius:8px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;}
 .meal-edit-actions{display:flex;gap:8px;margin-top:10px;}
 .meal-edit-actions .btn{margin-top:0;}
 .day-summary div b.warn-ok{color:var(--primary);}
@@ -260,7 +273,7 @@ canvas#dial{flex-shrink:0;}
 <main>
 
   <!-- ============ SETUP ============ -->
-  <section id="view-setup" class="view">
+  <section id="view-setup" class="view active">
     <div class="card">
       <h2><span class="eyebrow">Step 1</span>Your stats</h2>
       <div class="row">
@@ -646,9 +659,9 @@ function drawDial(targets){
   const pKcal = targets.proteinG*4, cKcal = targets.carbG*4, fKcal = targets.fatG*9;
   const total = pKcal+cKcal+fKcal;
   const segs = [
-    {val:pKcal, color:'#2f6f4e'},
-    {val:cKcal, color:'#c1440e'},
-    {val:fKcal, color:'#c9962a'},
+    {val:pKcal, color:'#ff5a2b'},
+    {val:cKcal, color:'#2f80ed'},
+    {val:fKcal, color:'#e0a800'},
   ];
   let start = -Math.PI/2;
   segs.forEach(s=>{
@@ -676,9 +689,9 @@ function renderResults(profile, targets){
   drawDial(targets);
   const legend = document.getElementById('dial-legend');
   legend.innerHTML = `
-    <div class="legend-row"><span><span class="dot" style="background:#2f6f4e"></span>Protein</span><span class="val">${targets.proteinG} g</span></div>
-    <div class="legend-row"><span><span class="dot" style="background:#c1440e"></span>Carbs</span><span class="val">${targets.carbG} g</span></div>
-    <div class="legend-row"><span><span class="dot" style="background:#c9962a"></span>Fat</span><span class="val">${targets.fatG} g</span></div>
+    <div class="legend-row"><span><span class="dot" style="background:#ff5a2b"></span>Protein</span><span class="val">${targets.proteinG} g</span></div>
+    <div class="legend-row"><span><span class="dot" style="background:#2f80ed"></span>Carbs</span><span class="val">${targets.carbG} g</span></div>
+    <div class="legend-row"><span><span class="dot" style="background:#e0a800"></span>Fat</span><span class="val">${targets.fatG} g</span></div>
   `;
 }
 
@@ -1254,68 +1267,14 @@ async function scanNutritionLabel(file){
 }
 
 /* =========================================================================
-   CAMERA — BACK CAMERA ONLY, NO USER CHOICE
-   Strategy: enumerate the real video devices and pick the rear one
-   ourselves rather than trusting facingMode, which some Android hardware
-   reports incorrectly. Rear cameras are identified by label; among
-   several rear lenses we take the FIRST one, which on multi-lens phones
-   is the main (best-focusing) sensor rather than the ultra-wide.
-   Only if enumeration gives us nothing do we fall back to a facingMode
-   request.
+   CAMERA
+   Deliberately simple: plain facingMode:'environment', no deviceId
+   enumeration, no strict "exact" constraints, no resolution/focus
+   overrides. Earlier attempts to "improve" this (device picking, exact
+   constraints, forced focus/resolution) made camera selection WORSE on
+   this hardware, not better — this is back to what actually worked.
    ========================================================================= */
-async function getBackCameraId(){
-  try{
-    // Priming getUserMedia first — device labels are blank until camera
-    // permission has been granted at least once.
-    const primer = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-    primer.getTracks().forEach(t=>t.stop());
-  }catch(e){ /* ignore — may already be granted, or denied */ }
-
-  let cams = [];
-  try{
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    cams = devices.filter(d=>d.kind === 'videoinput');
-  }catch(e){ return null; }
-  if(!cams.length) return null;
-
-  const isFront = (label='') => /front|face|selfie|user/i.test(label);
-  const isBack  = (label='') => /back|rear|environment|world/i.test(label);
-
-  // 1. Explicitly back-labelled cameras, first one wins (main lens).
-  const backCams = cams.filter(c=>isBack(c.label));
-  if(backCams.length) return backCams[0].deviceId;
-
-  // 2. Labels present but none say "back" — take anything not clearly front-facing.
-  const labelled = cams.filter(c=>c.label);
-  if(labelled.length){
-    const notFront = labelled.filter(c=>!isFront(c.label));
-    if(notFront.length) return notFront[0].deviceId;
-  }
-
-  // 3. Labels are blank/permission-restricted. On virtually every phone the
-  //    last enumerated camera is a rear one, so prefer that over the first.
-  return cams[cams.length - 1].deviceId;
-}
-
-function scannerConfig(){
-  return {
-    fps:10, qrbox:{width:280,height:160},
-    formatsToSupport:[
-      Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8,
-      Html5QrcodeSupportedFormats.UPC_A, Html5QrcodeSupportedFormats.UPC_E,
-      Html5QrcodeSupportedFormats.CODE_128,
-    ],
-    // Higher resolution + continuous autofocus — the default request is often
-    // low-res and fixed-focus, which is what causes blur at close barcode range.
-    videoConstraints: {
-      width: { ideal: 1920 }, height: { ideal: 1080 },
-      focusMode: 'continuous',
-      advanced: [{ focusMode: 'continuous' }],
-    },
-  };
-}
-
-async function startScanner(){
+function startScanner(){
   if(scanning) return;
   if(!isPremium() && scanCountThisMonth() >= CONFIG.premium.freeLimits.scansPerMonth){
     toast(`Free scan limit reached (${CONFIG.premium.freeLimits.scansPerMonth}/month)`);
@@ -1325,26 +1284,25 @@ async function startScanner(){
   scanning = true;
   document.getElementById('btn-scan-toggle').textContent = 'Stop scanner';
   scanner = new Html5Qrcode('reader');
-  const config = scannerConfig();
-
-  const backId = await getBackCameraId();
-  const cameraArg = backId ? { deviceId: { exact: backId } } : { facingMode: { exact: 'environment' } };
-
-  const onScan = (decodedText)=>{ lookupBarcode(decodedText); stopScanner(); };
-  const applyFocus = ()=>{ try{ scanner.applyVideoConstraints({ advanced:[{ focusMode:'continuous' }] }); }catch(e){} };
-
-  scanner.start(cameraArg, config, onScan, ()=>{})
-    .then(applyFocus)
-    .catch(()=>{
-      // Device rejected the specific deviceId — fall back to a strict rear request.
-      scanner.start({ facingMode: { exact: 'environment' } }, config, onScan, ()=>{})
-        .then(applyFocus)
-        .catch(()=>{
-          toast('Back camera unavailable — enter the barcode manually below');
-          scanning = false;
-          document.getElementById('btn-scan-toggle').textContent = 'Start scanner';
-        });
-    });
+  const config = {
+    fps:10, qrbox:{width:250,height:150},
+    formatsToSupport:[
+      Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8,
+      Html5QrcodeSupportedFormats.UPC_A, Html5QrcodeSupportedFormats.UPC_E,
+      Html5QrcodeSupportedFormats.CODE_128,
+    ],
+  };
+  scanner.start({ facingMode: 'environment' }, config,
+    (decodedText)=>{
+      lookupBarcode(decodedText);
+      stopScanner();
+    },
+    ()=>{ /* per-frame scan failure, ignore */ }
+  ).catch(err=>{
+    toast('Camera unavailable — enter the barcode manually below');
+    scanning = false;
+    document.getElementById('btn-scan-toggle').textContent = 'Start scanner';
+  });
 }
 
 function stopScanner(){
@@ -1540,6 +1498,7 @@ document.getElementById('in-label-photo').addEventListener('change', (e)=>{
 /* =========================================================================
    INIT
    ========================================================================= */
+showView('setup');
 fillFormFromProfile();
 if(DB.targets) renderResults(DB.profile, DB.targets);
 renderFoods();
