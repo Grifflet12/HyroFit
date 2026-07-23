@@ -1,7 +1,7 @@
 // service-worker.js — caches the app shell so HyroFit opens instantly and
 // works offline for everything except barcode lookups (which need the
 // internet to reach Open Food Facts) and ads.
-const CACHE_NAME = 'hyrofit-shell-v1';
+const CACHE_NAME = 'hyrofit-shell-v2';
 const SHELL_FILES = [
   './index.html',
   './manifest.json',

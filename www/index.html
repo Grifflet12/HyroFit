@@ -6,7 +6,7 @@
 <title>HyroFit — Calorie, Macro &amp; Meal Planner</title>
 <meta name="description" content="Calculate your calories and macros, generate a weekly meal plan and shopping list, and scan barcodes to log food.">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ff5a2b">
+<meta name="theme-color" content="#2563eb">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="mobile-web-app-capable" content="yes">
@@ -17,21 +17,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f3f4f1;
+  --bg:#f2f4f8;
   --card:#ffffff;
-  --ink:#13161a;
-  --ink-soft:#6b7280;
-  --line:#e6e7e2;
-  --tint:#f2efec;
-  --primary:#ff5a2b;
-  --primary-dark:#d9430f;
-  --primary-tint:#ffe8dd;
-  --carb:#2f80ed;
-  --fat:#e0a800;
-  --protein:#ff5a2b;
+  --ink:#0f172a;
+  --ink-soft:#64748b;
+  --line:#e2e6ee;
+  --tint:#eef2f9;
+  --primary:#2563eb;
+  --primary-dark:#1d4ed8;
+  --primary-tint:#dbe7ff;
+  --carb:#f59e0b;
+  --fat:#10b981;
+  --protein:#2563eb;
   --danger:#dc2626;
   --radius:18px;
-  --shadow:0 1px 2px rgba(19,22,26,.05), 0 10px 28px -14px rgba(19,22,26,.16);
+  --shadow:0 1px 2px rgba(15,23,42,.05), 0 10px 28px -14px rgba(15,23,42,.16);
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
@@ -61,7 +61,7 @@ button{font-family:inherit;}
   width:22px;height:22px;border-radius:7px;
   background:linear-gradient(135deg, var(--primary), var(--primary-dark));
   display:inline-flex;align-items:center;justify-content:center;
-  box-shadow:0 3px 10px -3px rgba(255,90,43,.55);
+  box-shadow:0 3px 10px -3px rgba(37,99,235,.5);
 }
 .topbar .brand .mark::after{
   content:'';width:8px;height:8px;border-radius:2px;background:#fff;transform:rotate(45deg);
@@ -100,10 +100,10 @@ input:focus,select:focus{outline:none;border-color:var(--primary);background:#ff
   padding:13px 16px;border-radius:12px;border:none;
   background:var(--primary);color:#fff;font-weight:700;font-size:14.5px;cursor:pointer;
   width:100%;margin-top:14px;letter-spacing:-.01em;
-  box-shadow:0 6px 16px -8px rgba(255,90,43,.6);
+  box-shadow:0 6px 16px -8px rgba(37,99,235,.55);
   transition:transform .1s, box-shadow .1s;
 }
-.btn:active{transform:translateY(1px) scale(.99);box-shadow:0 3px 8px -4px rgba(255,90,43,.5);}
+.btn:active{transform:translateY(1px) scale(.99);box-shadow:0 3px 8px -4px rgba(37,99,235,.45);}
 .btn.secondary{background:var(--primary-tint);color:var(--primary-dark);box-shadow:none;}
 .btn.ghost{background:transparent;color:var(--ink-soft);border:1.5px solid var(--line);box-shadow:none;}
 .btn.danger{background:transparent;color:var(--danger);border:1.5px solid var(--danger);box-shadow:none;}
@@ -127,17 +127,17 @@ canvas#dial{flex-shrink:0;}
 .tabbar{
   position:fixed;bottom:0;left:0;right:0;z-index:30;
   background:var(--ink);
-  display:flex;justify-content:space-around;padding:10px 4px calc(10px + env(safe-area-inset-bottom));
+  display:flex;justify-content:space-around;padding:9px 2px calc(9px + env(safe-area-inset-bottom));
   box-shadow:0 -8px 24px -12px rgba(0,0,0,.35);
 }
 .tab{
-  background:none;border:none;color:#7b8087;font-size:10.5px;font-weight:600;
-  display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;
-  padding:6px 10px;border-radius:12px;letter-spacing:.02em;
+  background:none;border:none;color:#7b8087;font-size:9.5px;font-weight:600;
+  display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;
+  padding:5px 4px;border-radius:11px;letter-spacing:.01em;flex:1;min-width:0;
   transition:background .15s, color .15s;
 }
-.tab svg{width:20px;height:20px;stroke:#7b8087;fill:none;stroke-width:1.8;transition:stroke .15s;}
-.tab.active{color:#fff;background:rgba(255,90,43,.18);}
+.tab svg{width:19px;height:19px;stroke:#7b8087;fill:none;stroke-width:1.8;transition:stroke .15s;}
+.tab.active{color:#fff;background:rgba(37,99,235,.22);}
 .tab.active svg{stroke:var(--primary);}
 
 /* ---------- Day plan ---------- */
@@ -146,7 +146,7 @@ canvas#dial{flex-shrink:0;}
   flex-shrink:0;border:1.5px solid var(--line);background:var(--card);
   padding:7px 14px;border-radius:20px;font-size:12.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;
 }
-.day-tabs button.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 4px 12px -6px rgba(255,90,43,.6);}
+.day-tabs button.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 4px 12px -6px rgba(37,99,235,.55);}
 
 .meal{border-bottom:1px solid var(--line);padding:13px 0;}
 .meal:last-child{border-bottom:none;}
@@ -175,10 +175,6 @@ canvas#dial{flex-shrink:0;}
 .scan-result{display:flex;gap:12px;align-items:center;}
 .scan-result img{width:56px;height:56px;object-fit:cover;border-radius:10px;background:#eee;}
 .pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--primary-tint);color:var(--primary-dark);}
-.ocr-status{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:var(--ink-soft);}
-.ocr-spinner{width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.ocr-raw-text{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);background:var(--tint);border-radius:10px;padding:8px 10px;margin-top:8px;max-height:110px;overflow-y:auto;white-space:pre-wrap;}
 
 /* ---------- Food DB list ---------- */
 .food-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);}
@@ -340,6 +336,21 @@ canvas#dial{flex-shrink:0;}
     </div>
   </section>
 
+  <!-- ============ LOG ============ -->
+  <section id="view-log" class="view">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <button class="btn ghost small" id="btn-log-prev">‹</button>
+        <div style="text-align:center;flex:1;">
+          <div style="font-weight:700;font-size:15.5px;" id="log-date-label"></div>
+          <button class="btn ghost small" id="btn-log-today" style="margin-top:4px;display:none;padding:3px 10px;">Jump to today</button>
+        </div>
+        <button class="btn ghost small" id="btn-log-next">›</button>
+      </div>
+    </div>
+    <div id="log-output"></div>
+  </section>
+
   <!-- ============ PLAN ============ -->
   <section id="view-plan" class="view">
     <div class="card">
@@ -376,15 +387,6 @@ canvas#dial{flex-shrink:0;}
       </div>
     </div>
     <div class="card" id="scan-result-card" style="display:none;"></div>
-
-    <div class="card">
-      <h2>Can't find it by barcode?</h2>
-      <p style="font-size:13px;color:var(--ink-soft);margin:0 0 10px;">Take a photo of the nutrition facts label instead — it'll read the numbers off the label for you to check before saving.</p>
-      <input type="file" accept="image/*" capture="environment" id="in-label-photo" style="display:none;">
-      <button class="btn secondary" id="btn-scan-label">📷 Scan nutrition label</button>
-      <div id="label-ocr-status"></div>
-    </div>
-    <div class="card" id="label-review-card" style="display:none;"></div>
   </section>
 
   <!-- ============ FOODS ============ -->
@@ -447,6 +449,10 @@ canvas#dial{flex-shrink:0;}
     <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c1.2-4 4-6 7-6s5.8 2 7 6"/></svg>
     Setup
   </button>
+  <button class="tab" data-view="log">
+    <svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+    Log
+  </button>
   <button class="tab" data-view="plan">
     <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg>
     Plan
@@ -472,7 +478,6 @@ canvas#dial{flex-shrink:0;}
 <div class="toast" id="toast"></div>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 /* =========================================================================
    MONETIZATION CONFIG — edit these values, nothing else needs to change
@@ -512,7 +517,7 @@ function loadDB(){
     const raw = localStorage.getItem(DB_KEY);
     if(raw) return JSON.parse(raw);
   }catch(e){}
-  return { profile:null, targets:null, foods: seedFoods(), plan:null, shopChecks:{} };
+  return { profile:null, targets:null, foods: seedFoods().map(f=>({...f, source:'seed'})), plan:null, shopChecks:{}, log:{} };
 }
 let DB = loadDB();
 function save(){ try{ localStorage.setItem(DB_KEY, JSON.stringify(DB)); }catch(e){} }
@@ -659,9 +664,9 @@ function drawDial(targets){
   const pKcal = targets.proteinG*4, cKcal = targets.carbG*4, fKcal = targets.fatG*9;
   const total = pKcal+cKcal+fKcal;
   const segs = [
-    {val:pKcal, color:'#ff5a2b'},
-    {val:cKcal, color:'#2f80ed'},
-    {val:fKcal, color:'#e0a800'},
+    {val:pKcal, color:'#2563eb'},
+    {val:cKcal, color:'#f59e0b'},
+    {val:fKcal, color:'#10b981'},
   ];
   let start = -Math.PI/2;
   segs.forEach(s=>{
@@ -689,20 +694,27 @@ function renderResults(profile, targets){
   drawDial(targets);
   const legend = document.getElementById('dial-legend');
   legend.innerHTML = `
-    <div class="legend-row"><span><span class="dot" style="background:#ff5a2b"></span>Protein</span><span class="val">${targets.proteinG} g</span></div>
-    <div class="legend-row"><span><span class="dot" style="background:#2f80ed"></span>Carbs</span><span class="val">${targets.carbG} g</span></div>
-    <div class="legend-row"><span><span class="dot" style="background:#e0a800"></span>Fat</span><span class="val">${targets.fatG} g</span></div>
+    <div class="legend-row"><span><span class="dot" style="background:#2563eb"></span>Protein</span><span class="val">${targets.proteinG} g</span></div>
+    <div class="legend-row"><span><span class="dot" style="background:#f59e0b"></span>Carbs</span><span class="val">${targets.carbG} g</span></div>
+    <div class="legend-row"><span><span class="dot" style="background:#10b981"></span>Fat</span><span class="val">${targets.fatG} g</span></div>
   `;
 }
 
 /* =========================================================================
    MEAL PLAN GENERATION
-   Builds each meal from whatever is currently in the user's own food
-   database (seed foods + anything scanned or added manually), tagged by
-   which meal(s) it suits. Picks a protein-leaning food, a carb-leaning
-   food, a vegetable for lunch/dinner, and a fat source where available,
-   then scales the combination to hit that meal's share of the daily
-   calorie target.
+   Solves for grams directly against each meal's protein/fat/calorie share
+   of the daily targets, rather than picking arbitrary portions and scaling
+   the whole meal by one factor (that approach let protein drift far off
+   target since scaling drags every ingredient by the same multiplier).
+   Order of operations: protein food sized to hit the protein target,
+   fat food sized to hit whatever fat target remains after that, carb food
+   sized to fill the remaining calories — mirroring how the day-level
+   targets themselves are built (protein and fat are the fixed goals,
+   carbs are the flexible remainder).
+   Foods the user has scanned or typed in by hand are treated as a strong
+   preference — they're picked most days, rotating among themselves if
+   there are several, with the regular food database mixed in periodically
+   for variety rather than every scanned item being crammed into one day.
    ========================================================================= */
 const MEAL_SPLIT = { breakfast:0.25, lunch:0.32, dinner:0.32, snack:0.11 };
 
@@ -715,32 +727,20 @@ function classifyMacro(food){
   return 'fat';
 }
 
-function pickMealFoods(mealType, dayIndex){
-  let candidates = DB.foods.filter(f=>Array.isArray(f.meals) && f.meals.includes(mealType));
-  if(!candidates.length) candidates = DB.foods.slice(); // nothing tagged for this meal — use whatever exists
-  if(!candidates.length) return [];
+function isPreferredFood(food){ return food.source === 'scanned' || food.source === 'manual'; }
 
-  const proteinFoods = candidates.filter(f=>classifyMacro(f)==='protein');
-  const carbFoods = candidates.filter(f=>classifyMacro(f)==='carb');
-  const fatFoods = candidates.filter(f=>classifyMacro(f)==='fat');
-  const produceFoods = candidates.filter(f=>f.cat==='Produce' && classifyMacro(f)!=='fat');
-
-  const pick = (arr, offset) => arr.length ? arr[(dayIndex+offset) % arr.length] : null;
-  const chosen = [];
-  const addUnique = (food, grams) => { if(food && !chosen.some(c=>c.f===food.id)) chosen.push({f:food.id, g:grams}); };
-
-  addUnique(pick(proteinFoods, 0), 100);
-  addUnique(pick(carbFoods, 1), 100);
-  if(mealType === 'lunch' || mealType === 'dinner'){
-    addUnique(pick(produceFoods, 2), 100);
+// Picks a food for a category, favoring the user's own scanned/manual
+// foods most days while still rotating in the regular database sometimes.
+function chooseFood(dayIndex, offset, foods){
+  if(!foods.length) return null;
+  const preferred = foods.filter(isPreferredFood);
+  const regular = foods.filter(f=>!isPreferredFood(f));
+  const idx = dayIndex + offset;
+  if(preferred.length){
+    if(regular.length && idx % 5 === 4) return regular[idx % regular.length]; // 1 day in 5: variety from the regular database
+    return preferred[idx % preferred.length]; // otherwise rotate among the user's own foods
   }
-  const fatPick = pick(fatFoods, 3);
-  addUnique(fatPick, fatPick && fatPick.cat === 'Fats & oils' ? 8 : 30);
-
-  if(!chosen.length){
-    addUnique(pick(candidates, 0), 100); // last resort: at least one food so the meal isn't empty
-  }
-  return chosen;
+  return regular.length ? regular[idx % regular.length] : null;
 }
 
 function foodById(id){ return DB.foods.find(f=>f.id===id); }
@@ -757,15 +757,99 @@ function computeMealTotals(items, adhoc=[]){
   return {kcal,p,c,f};
 }
 
-function scaleMeal(templateItems, targetKcal){
-  const base = computeMealTotals(templateItems);
-  const scale = base.kcal > 0 ? targetKcal / base.kcal : 1;
-  const items = templateItems.map(it=>({f:it.f, g: Math.max(5, Math.round(it.g*scale/5)*5)}));
+function recalcMeal(meal){
+  meal.totals = computeMealTotals(meal.items, meal.adhoc||[]);
+}
+
+function buildMeal(mealType, dayIndex, mealTargets){
+  let candidates = DB.foods.filter(f=>Array.isArray(f.meals) && f.meals.includes(mealType));
+  if(!candidates.length) candidates = DB.foods.slice();
+  if(!candidates.length) return { items:[], adhoc:[], totals:{kcal:0,p:0,c:0,f:0} };
+
+  const proteinFoods = candidates.filter(f=>classifyMacro(f)==='protein');
+  const carbFoods = candidates.filter(f=>classifyMacro(f)==='carb');
+  const fatFoods = candidates.filter(f=>classifyMacro(f)==='fat');
+  const produceFoods = candidates.filter(f=>f.cat==='Produce' && classifyMacro(f)!=='fat');
+
+  const proteinFood = chooseFood(dayIndex, 0, proteinFoods);
+  const carbFood = chooseFood(dayIndex, 1, carbFoods);
+  const fatFood = chooseFood(dayIndex, 3, fatFoods);
+  const produceFood = (mealType==='lunch'||mealType==='dinner') ? chooseFood(dayIndex, 2, produceFoods) : null;
+
+  const clamp = (v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+  const roundG = g => Math.max(5, Math.round(g/5)*5);
+  const items = [];
+
+  // 1. Produce first: fixed modest portion, small but non-zero macro impact
+  //    that needs to be accounted for before sizing the other foods.
+  if(produceFood){
+    items.push({f:produceFood.id, g: roundG(110)});
+  }
+
+  // 2. Protein food, initial estimate against the full protein target.
+  let proteinIdx = -1;
+  if(proteinFood){
+    const g = proteinFood.p > 0 ? (mealTargets.p/proteinFood.p)*100 : 120;
+    items.push({f:proteinFood.id, g: roundG(clamp(g, 15, 400))});
+    proteinIdx = items.length - 1;
+  }
+
+  let running = computeMealTotals(items);
+
+  // 3. Fat food sized to whatever fat target remains after produce + the
+  //    protein source's own fat content (many protein foods aren't fat-free).
+  if(fatFood){
+    const remainingFat = mealTargets.f - running.f;
+    if(remainingFat > 3){
+      const g = fatFood.f > 0 ? (remainingFat/fatFood.f)*100 : 10;
+      items.push({f:fatFood.id, g: roundG(clamp(g, 3, 60))});
+      running = computeMealTotals(items);
+    }
+  }
+
+  // 4. Re-solve the protein food now that produce and fat are locked in —
+  //    both of those often carry meaningful protein of their own (nuts,
+  //    vegetables), and without this correction the meal ends up well over
+  //    the protein target rather than on it.
+  if(proteinIdx >= 0 && proteinFood.p > 0){
+    const others = items.filter((_,idx)=>idx!==proteinIdx);
+    const otherProtein = computeMealTotals(others).p;
+    const remainingProtein = Math.max(mealTargets.p - otherProtein, 0);
+    items[proteinIdx].g = roundG(clamp((remainingProtein/proteinFood.p)*100, 15, 400));
+    running = computeMealTotals(items);
+  }
+
+  // 5. Carb food fills whatever calories are left — the flexible macro,
+  //    same philosophy as the day-level target calculation. Sized against
+  //    the now-corrected protein/fat/produce.
+  if(carbFood){
+    const remainingKcal = Math.max(mealTargets.kcal - running.kcal, 0);
+    const g = carbFood.kcal > 0 ? (remainingKcal/carbFood.kcal)*100 : 100;
+    items.push({f:carbFood.id, g: roundG(clamp(g, 15, 500))});
+  }
+
+  // 6. Final correction: carb sources carry some protein too (rice, oats),
+  //    so re-solve the protein food one last time against everything else
+  //    now finalized. This is what actually gets the meal's protein onto
+  //    the target instead of consistently running high.
+  if(proteinIdx >= 0 && proteinFood.p > 0){
+    const others = items.filter((_,idx)=>idx!==proteinIdx);
+    const otherProtein = computeMealTotals(others).p;
+    const remainingProtein = Math.max(mealTargets.p - otherProtein, 0);
+    items[proteinIdx].g = roundG(clamp((remainingProtein/proteinFood.p)*100, 15, 400));
+  }
+
+  if(!items.length){
+    const any = chooseFood(dayIndex, 0, candidates);
+    if(any) items.push({f:any.id, g:100});
+  }
+
   return { items, adhoc:[], totals: computeMealTotals(items) };
 }
 
-function recalcMeal(meal){
-  meal.totals = computeMealTotals(meal.items, meal.adhoc||[]);
+function mealTargetsFor(targets, type){
+  const split = MEAL_SPLIT[type];
+  return { kcal: targets.calories*split, p: targets.proteinG*split, c: targets.carbG*split, f: targets.fatG*split };
 }
 
 /* ---------- Custom meal editing ---------- */
@@ -819,8 +903,7 @@ function resetDayToGenerated(dayIdx){
   const targets = DB.targets;
   const meals = {};
   ['breakfast','lunch','dinner','snack'].forEach(type=>{
-    const targetKcal = targets.calories * MEAL_SPLIT[type];
-    meals[type] = scaleMeal(pickMealFoods(type, dayIdx), targetKcal);
+    meals[type] = buildMeal(type, dayIdx, mealTargetsFor(targets, type));
   });
   DB.plan[dayIdx] = { day: DB.plan[dayIdx].day, meals, custom:false };
   save(); renderPlan();
@@ -842,20 +925,23 @@ function generatePlan(targets, existingPlan){
     }
     const meals = {};
     ['breakfast','lunch','dinner','snack'].forEach(type=>{
-      const targetKcal = targets.calories * MEAL_SPLIT[type];
-      meals[type] = scaleMeal(pickMealFoods(type, i), targetKcal);
+      meals[type] = buildMeal(type, i, mealTargetsFor(targets, type));
     });
     return { day, meals, custom:false };
   });
   return plan;
 }
 
-function dayTotals(dayPlan){
+function sumMealsTotals(mealsObj){
   let kcal=0,p=0,c=0,f=0;
-  Object.values(dayPlan.meals).forEach(m=>{
+  Object.values(mealsObj).forEach(m=>{
     kcal+=m.totals.kcal; p+=m.totals.p; c+=m.totals.c; f+=m.totals.f;
   });
   return {kcal,p,c,f};
+}
+
+function dayTotals(dayPlan){
+  return sumMealsTotals(dayPlan.meals);
 }
 
 /* =========================================================================
@@ -1018,6 +1104,202 @@ function renderPlan(){
 }
 
 /* =========================================================================
+   FOOD LOG — what the user actually ate, by day, independent of the plan.
+   Same meal-editor pattern as the Plan tab (search database, add grams,
+   log one-off items), but navigated by date instead of a generated week.
+   ========================================================================= */
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function shiftDateStr(dateStr, deltaDays){
+  const [y,m,dd] = dateStr.split('-').map(Number);
+  const dt = new Date(y, m-1, dd);
+  dt.setDate(dt.getDate() + deltaDays);
+  return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
+}
+function formatLogDateLabel(dateStr){
+  const today = todayStr();
+  if(dateStr === today) return 'Today';
+  if(dateStr === shiftDateStr(today,-1)) return 'Yesterday';
+  if(dateStr === shiftDateStr(today,1)) return 'Tomorrow';
+  const [y,m,dd] = dateStr.split('-').map(Number);
+  return new Date(y, m-1, dd).toLocaleDateString(undefined, {weekday:'short', month:'short', day:'numeric'});
+}
+function emptyLogMeal(){ return { items:[], adhoc:[], totals:{kcal:0,p:0,c:0,f:0} }; }
+function getLogDay(dateStr){
+  if(!DB.log) DB.log = {};
+  if(!DB.log[dateStr]){
+    DB.log[dateStr] = { breakfast:emptyLogMeal(), lunch:emptyLogMeal(), dinner:emptyLogMeal(), snack:emptyLogMeal() };
+  }
+  return DB.log[dateStr];
+}
+
+let currentLogDate = todayStr();
+let logEditingMealType = null;
+let logSearchQuery = '';
+
+function logAddFoodToMeal(mealType, foodId){
+  const food = foodById(foodId); if(!food) return;
+  const gramsStr = prompt(`How many grams of ${food.name}?`, '100');
+  const grams = parseFloat(gramsStr);
+  if(!grams || grams<=0) return;
+  const meal = getLogDay(currentLogDate)[mealType];
+  meal.items.push({f:foodId, g:Math.round(grams)});
+  recalcMeal(meal);
+  save(); renderLog();
+}
+function logRemoveItemFromMeal(mealType, idx){
+  const meal = getLogDay(currentLogDate)[mealType];
+  meal.items.splice(idx,1);
+  recalcMeal(meal);
+  save(); renderLog();
+}
+function logAddAdhocToMeal(mealType){
+  const name = prompt('What did you eat? (e.g. "Restaurant burger")'); if(!name) return;
+  const kcal = parseFloat(prompt('Total calories for that amount?')); if(isNaN(kcal)) return;
+  const p = parseFloat(prompt('Protein (g)? Leave blank for 0')) || 0;
+  const c = parseFloat(prompt('Carbs (g)? Leave blank for 0')) || 0;
+  const f = parseFloat(prompt('Fat (g)? Leave blank for 0')) || 0;
+  const meal = getLogDay(currentLogDate)[mealType];
+  meal.adhoc.push({name, kcal, p, c, f});
+  recalcMeal(meal);
+  save(); renderLog();
+  toast('Logged "' + name + '"');
+}
+function logRemoveAdhocFromMeal(mealType, idx){
+  const meal = getLogDay(currentLogDate)[mealType];
+  meal.adhoc.splice(idx,1);
+  recalcMeal(meal);
+  save(); renderLog();
+}
+
+function renderLog(){
+  document.getElementById('log-date-label').textContent = formatLogDateLabel(currentLogDate);
+  document.getElementById('btn-log-today').style.display = currentLogDate === todayStr() ? 'none' : 'inline-flex';
+
+  const out = document.getElementById('log-output');
+  const day = getLogDay(currentLogDate);
+  const totals = sumMealsTotals(day);
+  const targets = DB.targets || {};
+  const mealNames = {breakfast:'Breakfast', lunch:'Lunch', dinner:'Dinner', snack:'Snack'};
+
+  let mealsHtml = '';
+  ['breakfast','lunch','dinner','snack'].forEach(type=>{
+    const m = day[type];
+    const isEditing = logEditingMealType === type;
+    const ingredients = m.items.map((it,idx)=>{
+      const food = foodById(it.f);
+      return `<div class="ingredient"><span>${food ? food.name : it.f}</span><span class="g">${it.g} g ${isEditing?`<button class="rm" data-log-rm-item="${idx}">×</button>`:''}</span></div>`;
+    }).join('');
+    const adhocHtml = (m.adhoc||[]).map((a,idx)=>{
+      return `<div class="ingredient"><span>${a.name} <span class="pill" style="margin-left:4px;">logged</span></span><span class="g">${Math.round(a.kcal)} kcal ${isEditing?`<button class="rm" data-log-rm-adhoc="${idx}">×</button>`:''}</span></div>`;
+    }).join('');
+
+    let editPanel = '';
+    if(isEditing){
+      const q = logSearchQuery.trim().toLowerCase();
+      const matches = q ? DB.foods.filter(f=>f.name.toLowerCase().includes(q)).slice(0,8) : [];
+      editPanel = `
+        <div class="meal-edit-panel">
+          <input class="food-search-input" id="log-food-search" placeholder="Search your food database…" value="${logSearchQuery.replace(/"/g,'&quot;')}">
+          <div id="log-food-results">
+            ${matches.map(f=>`
+              <div class="food-result-row">
+                <span class="fr-name">${f.name}</span>
+                <span class="fr-macro">${f.kcal} kcal/100g</span>
+                <button data-log-add-food="${f.id}">Add</button>
+              </div>
+            `).join('') || (q ? '<div style="font-size:12.5px;color:var(--ink-soft);padding:6px 0;">No matches — try the Foods tab to add it, or log a one-off below.</div>' : '')}
+          </div>
+          <div class="meal-edit-actions">
+            <button class="btn small ghost" id="btn-log-adhoc-add">+ Log one-off food</button>
+            <button class="btn small secondary" id="btn-log-edit-done">Done editing</button>
+          </div>
+        </div>`;
+    }
+
+    mealsHtml += `
+      <div class="meal">
+        <div class="meal-head">
+          <span class="name">${mealNames[type]}</span>
+          <span class="kcal">${Math.round(m.totals.kcal)} kcal <button class="edit-btn" data-log-edit-meal="${type}">${isEditing?'Close':'+ Add'}</button></span>
+        </div>
+        ${ingredients}${adhocHtml}
+        ${!m.items.length && !(m.adhoc||[]).length ? '<div style="font-size:12.5px;color:var(--ink-soft);padding:4px 0;">Nothing logged yet.</div>' : ''}
+        <div class="macro-strip">
+          <span>P <b>${Math.round(m.totals.p)}g</b></span>
+          <span>C <b>${Math.round(m.totals.c)}g</b></span>
+          <span>F <b>${Math.round(m.totals.f)}g</b></span>
+        </div>
+        ${editPanel}
+      </div>`;
+  });
+
+  const cKcal = diffClass(totals.kcal, targets.calories);
+  const cP = diffClass(totals.p, targets.proteinG);
+  const cC = diffClass(totals.c, targets.carbG);
+  const cF = diffClass(totals.f, targets.fatG);
+
+  out.innerHTML = `
+    <div class="card">
+      ${mealsHtml}
+      <div class="day-summary">
+        <div>Calories<b class="${cKcal}">${Math.round(totals.kcal)}</b></div>
+        <div>Protein<b class="${cP}">${Math.round(totals.p)}g</b></div>
+        <div>Carbs<b class="${cC}">${Math.round(totals.c)}g</b></div>
+        <div>Fat<b class="${cF}">${Math.round(totals.f)}g</b></div>
+      </div>
+      ${targets.calories ? `<div style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;">vs target: ${targets.calories} kcal · P${targets.proteinG}g · C${targets.carbG}g · F${targets.fatG}g</div>` : '<div style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;">Set your targets on the Setup tab to see how today compares.</div>'}
+    </div>
+  `;
+
+  out.querySelectorAll('[data-log-edit-meal]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const type = btn.dataset.logEditMeal;
+      logEditingMealType = logEditingMealType === type ? null : type;
+      logSearchQuery = '';
+      renderLog();
+    });
+  });
+  out.querySelectorAll('[data-log-rm-item]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{ e.stopPropagation(); logRemoveItemFromMeal(logEditingMealType, +btn.dataset.logRmItem); });
+  });
+  out.querySelectorAll('[data-log-rm-adhoc]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{ e.stopPropagation(); logRemoveAdhocFromMeal(logEditingMealType, +btn.dataset.logRmAdhoc); });
+  });
+  out.querySelectorAll('[data-log-add-food]').forEach(btn=>{
+    btn.addEventListener('click', ()=>logAddFoodToMeal(logEditingMealType, btn.dataset.logAddFood));
+  });
+  const searchInput = out.querySelector('#log-food-search');
+  if(searchInput){
+    searchInput.focus();
+    searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
+    searchInput.addEventListener('input', (e)=>{ logSearchQuery = e.target.value; renderLog(); });
+  }
+  const adhocBtn = out.querySelector('#btn-log-adhoc-add');
+  if(adhocBtn) adhocBtn.addEventListener('click', ()=>logAddAdhocToMeal(logEditingMealType));
+  const doneBtn = out.querySelector('#btn-log-edit-done');
+  if(doneBtn) doneBtn.addEventListener('click', ()=>{ logEditingMealType = null; logSearchQuery=''; renderLog(); });
+}
+
+document.getElementById('btn-log-prev').addEventListener('click', ()=>{
+  currentLogDate = shiftDateStr(currentLogDate, -1);
+  logEditingMealType = null; logSearchQuery = '';
+  renderLog();
+});
+document.getElementById('btn-log-next').addEventListener('click', ()=>{
+  currentLogDate = shiftDateStr(currentLogDate, 1);
+  logEditingMealType = null; logSearchQuery = '';
+  renderLog();
+});
+document.getElementById('btn-log-today').addEventListener('click', ()=>{
+  currentLogDate = todayStr();
+  logEditingMealType = null; logSearchQuery = '';
+  renderLog();
+});
+
+/* =========================================================================
    RENDER: SHOPPING VIEW
    ========================================================================= */
 function renderShop(){
@@ -1074,7 +1356,7 @@ function renderFoods(filter=''){
   });
 }
 
-function customFoodCount(){ return DB.foods.filter(f=>f.id.startsWith('custom_') || f.id.startsWith('off_')).length; }
+function customFoodCount(){ return DB.foods.filter(f=>f.source==='manual' || f.source==='scanned' || f.id.startsWith('custom_') || f.id.startsWith('off_')).length; }
 
 function promptAddFood(){
   if(!isPremium() && customFoodCount() >= CONFIG.premium.freeLimits.customFoods){
@@ -1089,7 +1371,7 @@ function promptAddFood(){
   const f = parseFloat(prompt('Fat (g) per 100g?')) || 0;
   const cat = prompt('Category? (e.g. Produce, Protein, Grains, Dairy, Snack)') || 'Other';
   const id = 'custom_' + Date.now();
-  DB.foods.push({id, name, kcal, p, c, f, cat, meals:['snack']});
+  DB.foods.push({id, name, kcal, p, c, f, cat, meals:['snack'], source:'manual'});
   save(); renderFoods(); toast('Added ' + name + ' to your food database');
 }
 
@@ -1124,7 +1406,8 @@ async function lookupBarcode(code){
       p: +(n['proteins_100g']||0).toFixed(1),
       c: +(n['carbohydrates_100g']||0).toFixed(1),
       f: +(n['fat_100g']||0).toFixed(1),
-      meals: ['snack'],
+      meals: ['breakfast','lunch','dinner','snack'], // eligible everywhere so it actually shows up in generated plans
+      source: 'scanned',
       image: p.image_front_small_url || p.image_url || null,
       barcode: code,
     };
@@ -1177,96 +1460,6 @@ function showScanResult(food){
 }
 
 /* =========================================================================
-   NUTRITION LABEL OCR (fallback when a barcode isn't found / doesn't scan)
-   Uses Tesseract.js entirely client-side — no server, no API key. OCR on a
-   photographed label is never perfect, so this pre-fills an editable form
-   rather than saving anything automatically.
-   ========================================================================= */
-function parseLabelText(text){
-  const clean = text.replace(/\r/g, '');
-  const grab = (re) => { const m = clean.match(re); return m ? parseFloat(m[1]) : null; };
-  return {
-    servingG: grab(/serving\s*size\D{0,15}?(\d+(?:\.\d+)?)\s*g/i),
-    kcal: grab(/(?:calories|energy)\D{0,15}?(\d+(?:\.\d+)?)\s*(?:kcal)?/i),
-    protein: grab(/protein\D{0,10}?(\d+(?:\.\d+)?)\s*g/i),
-    carbs: grab(/(?:total\s*)?carbohydrate\D{0,15}?(\d+(?:\.\d+)?)\s*g/i),
-    fat: grab(/(?:total\s*)?fat\D{0,10}?(\d+(?:\.\d+)?)\s*g/i),
-  };
-}
-
-function renderLabelReview(parsed, rawText){
-  const card = document.getElementById('label-review-card');
-  card.style.display = 'block';
-  const servingG = parsed.servingG || 100;
-  card.innerHTML = `
-    <h2>Check the numbers</h2>
-    <p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 6px;">OCR isn't perfect — fix anything that looks off before saving. Enter the values exactly as shown on the label for the serving size below.</p>
-    <label>Food name</label>
-    <input id="lbl-name" placeholder="e.g. Store-brand granola bar">
-    <div class="row">
-      <div><label>Serving size (g)</label><input id="lbl-serving" type="number" value="${servingG}"></div>
-      <div><label>Calories (per serving)</label><input id="lbl-kcal" type="number" value="${parsed.kcal ?? ''}"></div>
-    </div>
-    <div class="row3">
-      <div><label>Protein (g)</label><input id="lbl-protein" type="number" value="${parsed.protein ?? ''}"></div>
-      <div><label>Carbs (g)</label><input id="lbl-carbs" type="number" value="${parsed.carbs ?? ''}"></div>
-      <div><label>Fat (g)</label><input id="lbl-fat" type="number" value="${parsed.fat ?? ''}"></div>
-    </div>
-    <div class="meal-edit-actions">
-      <button class="btn small ghost" id="btn-label-discard">Discard</button>
-      <button class="btn small" id="btn-label-save" style="flex:1;">Add to food database</button>
-    </div>
-    <details style="margin-top:10px;"><summary style="font-size:11.5px;color:var(--ink-soft);cursor:pointer;">Raw OCR text (for troubleshooting)</summary><div class="ocr-raw-text">${(rawText||'').replace(/</g,'&lt;')}</div></details>
-  `;
-  document.getElementById('btn-label-discard').addEventListener('click', ()=>{
-    card.style.display = 'none'; card.innerHTML = '';
-  });
-  document.getElementById('btn-label-save').addEventListener('click', ()=>{
-    if(!isPremium() && customFoodCount() >= CONFIG.premium.freeLimits.customFoods){
-      toast(`Free plan allows ${CONFIG.premium.freeLimits.customFoods} custom foods`);
-      showView('upgrade');
-      return;
-    }
-    const name = document.getElementById('lbl-name').value.trim();
-    const serving = parseFloat(document.getElementById('lbl-serving').value) || 100;
-    const kcalServing = parseFloat(document.getElementById('lbl-kcal').value) || 0;
-    const pServing = parseFloat(document.getElementById('lbl-protein').value) || 0;
-    const cServing = parseFloat(document.getElementById('lbl-carbs').value) || 0;
-    const fServing = parseFloat(document.getElementById('lbl-fat').value) || 0;
-    if(!name){ toast('Give this food a name first'); return; }
-    if(!kcalServing){ toast('Calories is required'); return; }
-    const scale = 100 / serving;
-    const food = {
-      id: 'label_' + Date.now(),
-      name, cat: 'Scanned label',
-      kcal: Math.round(kcalServing*scale), p: +(pServing*scale).toFixed(1),
-      c: +(cServing*scale).toFixed(1), f: +(fServing*scale).toFixed(1),
-      meals: ['snack'],
-    };
-    DB.foods.push(food); save();
-    card.style.display = 'none'; card.innerHTML = '';
-    toast('Saved "' + name + '" to your food database');
-  });
-}
-
-async function scanNutritionLabel(file){
-  const statusEl = document.getElementById('label-ocr-status');
-  document.getElementById('label-review-card').style.display = 'none';
-  statusEl.innerHTML = `<div class="ocr-status"><span class="ocr-spinner"></span><span>Reading the label… this can take up to 30 seconds the first time.</span></div>`;
-  try{
-    const { data:{ text } } = await Tesseract.recognize(file, 'eng');
-    statusEl.innerHTML = '';
-    const parsed = parseLabelText(text);
-    if(!parsed.kcal && !parsed.protein && !parsed.carbs && !parsed.fat){
-      toast('Could not read numbers off that photo — try better lighting or a straighter angle');
-    }
-    renderLabelReview(parsed, text);
-  }catch(e){
-    statusEl.innerHTML = `<div class="ocr-status">Could not read that image — try again with better lighting.</div>`;
-  }
-}
-
-/* =========================================================================
    CAMERA
    Deliberately simple: plain facingMode:'environment', no deviceId
    enumeration, no strict "exact" constraints, no resolution/focus
@@ -1274,6 +1467,29 @@ async function scanNutritionLabel(file){
    constraints, forced focus/resolution) made camera selection WORSE on
    this hardware, not better — this is back to what actually worked.
    ========================================================================= */
+
+// EAN-13/UPC-A/EAN-8 all encode a checksum as their last digit. A blurry or
+// partial camera read can still produce a "successful" decode with wrong
+// digits — this catches that before it ever reaches the lookup, so weaker
+// cameras get a silently-rejected bad read (and keep scanning) instead of
+// a false "product not found".
+function isValidBarcodeChecksum(code){
+  const digits = (code || '').replace(/\D/g, '');
+  let d = digits;
+  if(d.length === 12) d = '0' + d; // UPC-A → same algorithm as EAN-13
+  if(d.length === 13){
+    let sum = 0;
+    for(let i=0;i<12;i++){ sum += (+d[i]) * (i % 2 === 0 ? 1 : 3); }
+    return ((10 - (sum % 10)) % 10) === +d[12];
+  }
+  if(d.length === 8){
+    let sum = 0;
+    for(let i=0;i<7;i++){ sum += (+d[i]) * (i % 2 === 0 ? 3 : 1); }
+    return ((10 - (sum % 10)) % 10) === +d[7];
+  }
+  return true; // not a standard EAN/UPC length (e.g. CODE_128) — nothing to check
+}
+
 function startScanner(){
   if(scanning) return;
   if(!isPremium() && scanCountThisMonth() >= CONFIG.premium.freeLimits.scansPerMonth){
@@ -1294,6 +1510,9 @@ function startScanner(){
   };
   scanner.start({ facingMode: 'environment' }, config,
     (decodedText)=>{
+      if(!isValidBarcodeChecksum(decodedText)){
+        return; // likely a misread from a blurry/partial frame — keep scanning
+      }
       lookupBarcode(decodedText);
       stopScanner();
     },
@@ -1405,6 +1624,7 @@ function showView(name){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+name).classList.add('active');
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.view===name));
+  if(name==='log') renderLog();
   if(name==='plan') renderPlan();
   if(name==='shop'){ renderShop(); renderAffiliate(); }
   if(name==='foods'){ renderFoods(document.getElementById('food-search').value); renderAffiliate(); }
@@ -1485,14 +1705,6 @@ document.getElementById('btn-scan-toggle').addEventListener('click', ()=>{
 document.getElementById('btn-manual-lookup').addEventListener('click', ()=>{
   const code = document.getElementById('in-manual-barcode').value.trim();
   if(code) lookupBarcode(code);
-});
-document.getElementById('btn-scan-label').addEventListener('click', ()=>{
-  document.getElementById('in-label-photo').click();
-});
-document.getElementById('in-label-photo').addEventListener('change', (e)=>{
-  const file = e.target.files && e.target.files[0];
-  if(file) scanNutritionLabel(file);
-  e.target.value = ''; // allow re-selecting the same photo later
 });
 
 /* =========================================================================
