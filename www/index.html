@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>HyroFit — Calorie, Macro &amp; Meal Planner</title>
+<meta name="description" content="Calculate your calories and macros, generate a weekly meal plan and shopping list, and scan barcodes to log food.">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2f6f4e">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HyroFit">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f6f1;
+  --card:#ffffff;
+  --ink:#17241c;
+  --ink-soft:#4b5850;
+  --line:#dee3d7;
+  --primary:#2f6f4e;
+  --primary-dark:#204d37;
+  --carb:#c1440e;
+  --fat:#c9962a;
+  --protein:#2f6f4e;
+  --danger:#b3261e;
+  --radius:14px;
+  --shadow:0 1px 2px rgba(23,36,28,.06), 0 8px 24px -12px rgba(23,36,28,.12);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Inter',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:84px;
+}
+h1,h2,h3,.display{font-family:'Fraunces',serif;letter-spacing:-.01em;}
+.mono{font-family:'IBM Plex Mono',monospace;}
+a{color:inherit;}
+button{font-family:inherit;}
+
+/* ---------- App shell ---------- */
+.topbar{
+  position:sticky;top:0;z-index:20;
+  background:var(--bg);
+  border-bottom:1px solid var(--line);
+  padding:14px 18px 10px;
+}
+.topbar .brand{
+  display:flex;align-items:baseline;gap:8px;
+}
+.topbar .brand .mark{
+  width:10px;height:10px;border-radius:3px;background:var(--primary);
+  display:inline-block;transform:rotate(45deg);
+}
+.topbar h1{font-size:20px;margin:0;font-weight:600;}
+.topbar .sub{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+
+main{max-width:640px;margin:0 auto;padding:16px;}
+.view{display:none;animation:fade .25s ease;}
+.view.active{display:block;}
+@keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:18px;
+  margin-bottom:14px;
+  box-shadow:var(--shadow);
+}
+.card h2{font-size:16px;margin:0 0 12px;font-weight:600;}
+.card h2 .eyebrow{display:block;font-family:'Inter';font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);font-weight:600;margin-bottom:2px;}
+
+label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin:10px 0 4px;}
+input,select{
+  width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;
+  font-size:15px;background:#fbfcfa;color:var(--ink);font-family:inherit;
+}
+input:focus,select:focus{outline:2px solid var(--primary);outline-offset:1px;}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:11px 16px;border-radius:10px;border:1px solid var(--primary);
+  background:var(--primary);color:#fff;font-weight:600;font-size:14px;cursor:pointer;
+  width:100%;margin-top:14px;
+}
+.btn:active{transform:translateY(1px);}
+.btn.secondary{background:transparent;color:var(--primary);}
+.btn.ghost{background:transparent;color:var(--ink-soft);border-color:var(--line);}
+.btn.danger{background:transparent;color:var(--danger);border-color:var(--danger);}
+.btn.small{width:auto;padding:7px 12px;font-size:12px;margin-top:0;}
+
+.formula{
+  font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:#f0f2ea;
+  border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--ink-soft);
+  margin-top:8px;line-height:1.6;
+}
+
+/* ---------- Dial ---------- */
+.dial-wrap{display:flex;align-items:center;gap:18px;}
+canvas#dial{flex-shrink:0;}
+.dial-legend{flex:1;}
+.legend-row{display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:4px 0;}
+.legend-row .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:7px;}
+.legend-row .val{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+
+/* ---------- Tabs / bottom nav ---------- */
+.tabbar{
+  position:fixed;bottom:0;left:0;right:0;z-index:30;
+  background:var(--card);border-top:1px solid var(--line);
+  display:flex;justify-content:space-around;padding:8px 4px calc(8px + env(safe-area-inset-bottom));
+}
+.tab{
+  background:none;border:none;color:var(--ink-soft);font-size:10.5px;font-weight:600;
+  display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;
+  padding:4px 6px;border-radius:8px;letter-spacing:.02em;
+}
+.tab svg{width:20px;height:20px;stroke:var(--ink-soft);fill:none;stroke-width:1.8;}
+.tab.active{color:var(--primary);}
+.tab.active svg{stroke:var(--primary);}
+
+/* ---------- Day plan ---------- */
+.day-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:6px;}
+.day-tabs button{
+  flex-shrink:0;border:1px solid var(--line);background:var(--card);
+  padding:7px 13px;border-radius:20px;font-size:12.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;
+}
+.day-tabs button.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+
+.meal{border-bottom:1px solid var(--line);padding:12px 0;}
+.meal:last-child{border-bottom:none;}
+.meal-head{display:flex;justify-content:space-between;align-items:baseline;}
+.meal-head .name{font-weight:600;font-size:14px;}
+.meal-head .kcal{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--ink-soft);}
+.ingredient{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-soft);padding:3px 0;}
+.ingredient .g{font-family:'IBM Plex Mono',monospace;}
+.macro-strip{display:flex;gap:12px;margin-top:6px;font-size:11.5px;color:var(--ink-soft);}
+.macro-strip span b{color:var(--ink);}
+
+.day-summary{display:flex;justify-content:space-between;background:#f0f2ea;border-radius:9px;padding:10px 14px;margin-top:4px;font-size:12.5px;}
+.day-summary div b{display:block;font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--ink);}
+
+/* ---------- Shopping list ---------- */
+.cat-title{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);font-weight:700;margin:16px 0 6px;}
+.cat-title:first-child{margin-top:0;}
+.shop-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);}
+.shop-item input[type=checkbox]{width:18px;height:18px;flex-shrink:0;accent-color:var(--primary);}
+.shop-item .name{flex:1;font-size:14.5px;}
+.shop-item .qty{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--ink-soft);}
+.shop-item.checked .name{text-decoration:line-through;color:var(--ink-soft);}
+
+/* ---------- Scanner ---------- */
+#reader{width:100%;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);}
+.scan-result{display:flex;gap:12px;align-items:center;}
+.scan-result img{width:56px;height:56px;object-fit:cover;border-radius:8px;background:#eee;}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:#e7ede1;color:var(--primary-dark);}
+.ocr-status{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:var(--ink-soft);}
+.ocr-spinner{width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ocr-raw-text{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);background:#f0f2ea;border-radius:8px;padding:8px 10px;margin-top:8px;max-height:110px;overflow-y:auto;white-space:pre-wrap;}
+
+/* ---------- Food DB list ---------- */
+.food-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);}
+.food-row .fname{font-size:14px;font-weight:600;}
+.food-row .fmacro{font-size:11.5px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;}
+.search{margin-bottom:10px;}
+.empty{text-align:center;color:var(--ink-soft);font-size:13.5px;padding:28px 10px;}
+.toast{
+  position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
+  background:var(--ink);color:#fff;padding:10px 18px;border-radius:30px;font-size:13px;
+  z-index:50;opacity:0;transition:opacity .25s;pointer-events:none;
+}
+.toast.show{opacity:1;}
+
+/* ---------- Monetization: ads, affiliate, paywall ---------- */
+.ad-slot{
+  border:1px dashed var(--line);border-radius:10px;padding:10px;margin-bottom:14px;
+  text-align:center;color:var(--ink-soft);font-size:11px;background:#fbfcfa;
+  min-height:90px;display:flex;align-items:center;justify-content:center;
+}
+.ad-slot.hidden{display:none;}
+
+.affiliate-card{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);}
+.affiliate-card:last-child{border-bottom:none;}
+.affiliate-card img{width:52px;height:52px;border-radius:8px;object-fit:cover;background:#eee;flex-shrink:0;}
+.affiliate-card .aff-body{flex:1;}
+.affiliate-card .aff-name{font-weight:600;font-size:13.5px;}
+.affiliate-card .aff-note{font-size:12px;color:var(--ink-soft);}
+.affiliate-card .btn{width:auto;margin-top:6px;padding:6px 12px;font-size:12px;}
+.aff-disclosure{font-size:10.5px;color:var(--ink-soft);margin-top:8px;font-style:italic;}
+
+.lock-overlay{
+  position:relative;
+}
+.lock-overlay::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to bottom, rgba(255,255,255,0) 0%, var(--card) 92%);
+  pointer-events:none;
+}
+.lock-cta{
+  text-align:center;padding:16px;border:1px solid var(--line);border-radius:12px;
+  background:#f0f2ea;margin-top:8px;
+}
+.lock-cta .lock-title{font-weight:700;font-size:14px;margin-bottom:4px;}
+.lock-cta .lock-sub{font-size:12.5px;color:var(--ink-soft);margin-bottom:10px;}
+
+.plan-card{
+  border:1px solid var(--line);border-radius:var(--radius);padding:18px;background:var(--card);
+  text-align:center;position:relative;box-shadow:var(--shadow);
+}
+.plan-card.featured{border-color:var(--primary);border-width:2px;}
+.plan-card .badge{
+  display:inline-block;background:var(--primary);color:#fff;font-size:10.5px;font-weight:700;
+  padding:2px 10px;border-radius:20px;margin-bottom:8px;letter-spacing:.03em;text-transform:uppercase;
+}
+.plan-card .price{font-family:'IBM Plex Mono',monospace;font-size:32px;font-weight:600;margin:4px 0;}
+.plan-card .price span{font-size:13px;color:var(--ink-soft);font-family:'Inter';}
+.plan-card ul{list-style:none;padding:0;margin:14px 0;text-align:left;font-size:13.5px;}
+.plan-card ul li{padding:5px 0;padding-left:22px;position:relative;color:var(--ink-soft);}
+.plan-card ul li::before{content:'✓';position:absolute;left:0;color:var(--primary);font-weight:700;}
+.plan-card ul li.locked::before{content:'—';color:var(--line);}
+.status-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:#e7ede1;color:var(--primary-dark);display:inline-block;}
+
+/* ---------- Meal editor ---------- */
+.meal-head .edit-btn{background:none;border:none;color:var(--primary);font-size:12px;font-weight:700;cursor:pointer;padding:2px 4px;}
+.custom-dot{width:6px;height:6px;border-radius:50%;background:var(--carb);display:inline-block;margin-left:4px;vertical-align:middle;}
+.ingredient .rm{background:none;border:none;color:var(--danger);font-size:15px;cursor:pointer;padding:0 4px;line-height:1;}
+.meal-edit-panel{background:#f7f8f4;border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:8px;}
+.food-search-input{margin:0 0 6px;}
+.food-result-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;}
+.food-result-row:last-child{border-bottom:none;}
+.food-result-row .fr-name{flex:1;}
+.food-result-row .fr-macro{font-size:11px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;margin-right:8px;}
+.food-result-row button{background:var(--primary);color:#fff;border:none;border-radius:7px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer;}
+.meal-edit-actions{display:flex;gap:8px;margin-top:10px;}
+.meal-edit-actions .btn{margin-top:0;}
+.day-summary div b.warn-ok{color:var(--primary);}
+.day-summary div b.warn-mid{color:var(--fat);}
+.day-summary div b.warn-bad{color:var(--danger);}
+.day-flags{display:flex;justify-content:flex-end;gap:8px;margin-bottom:6px;}
+.day-flags button{background:none;border:none;color:var(--ink-soft);font-size:11.5px;font-weight:600;text-decoration:underline;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="mark"></span><h1>HyroFit</h1></div>
+  <div class="sub">Calories, macros, meal plans &amp; shopping lists — built around you</div>
+</div>
+
+<main>
+
+  <!-- ============ SETUP ============ -->
+  <section id="view-setup" class="view">
+    <div class="card">
+      <h2><span class="eyebrow">Step 1</span>Your stats</h2>
+      <div class="row">
+        <div><label>Sex</label>
+          <select id="in-sex"><option value="male">Male</option><option value="female">Female</option></select>
+        </div>
+        <div><label>Age</label><input id="in-age" type="number" inputmode="numeric" placeholder="30"></div>
+      </div>
+      <div class="row">
+        <div><label>Height (cm)</label><input id="in-height" type="number" placeholder="175"></div>
+        <div><label>Weight (kg)</label><input id="in-weight" type="number" placeholder="75"></div>
+      </div>
+      <label>Activity level</label>
+      <select id="in-activity">
+        <option value="1.2">Sedentary — desk job, little exercise</option>
+        <option value="1.375">Light — exercise 1–3 days/week</option>
+        <option value="1.55" selected>Moderate — exercise 3–5 days/week</option>
+        <option value="1.725">Active — exercise 6–7 days/week</option>
+        <option value="1.9">Very active — hard training or physical job</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <h2><span class="eyebrow">Step 2</span>Your goal</h2>
+      <label>Goal</label>
+      <select id="in-goal">
+        <option value="lose">Lose fat</option>
+        <option value="maintain">Maintain weight</option>
+        <option value="gain">Gain weight / muscle</option>
+      </select>
+      <div id="rate-wrap">
+        <label>Target rate of change (kg/week)</label>
+        <select id="in-rate">
+          <option value="0.25">0.25 kg/week — slow &amp; steady</option>
+          <option value="0.5" selected>0.5 kg/week — moderate</option>
+          <option value="0.75">0.75 kg/week</option>
+          <option value="1">1 kg/week — aggressive</option>
+        </select>
+      </div>
+      <label>Protein target (g per kg bodyweight)</label>
+      <select id="in-protein-rate">
+        <option value="1.6">1.6 g/kg</option>
+        <option value="1.8">1.8 g/kg</option>
+        <option value="2.0" selected>2.0 g/kg</option>
+        <option value="2.2">2.2 g/kg</option>
+      </select>
+      <label>Fat (% of total calories)</label>
+      <select id="in-fat-pct">
+        <option value="0.2">20%</option>
+        <option value="0.25" selected>25%</option>
+        <option value="0.3">30%</option>
+        <option value="0.35">35%</option>
+      </select>
+      <button class="btn" id="btn-calc">Calculate my targets</button>
+    </div>
+
+    <div class="card" id="results-card" style="display:none;">
+      <h2><span class="eyebrow">Your numbers</span>Daily targets</h2>
+      <div class="dial-wrap">
+        <canvas id="dial" width="132" height="132"></canvas>
+        <div class="dial-legend" id="dial-legend"></div>
+      </div>
+      <button class="btn secondary" id="btn-goto-plan">Generate my weekly meal plan →</button>
+    </div>
+  </section>
+
+  <!-- ============ PLAN ============ -->
+  <section id="view-plan" class="view">
+    <div class="card">
+      <h2>Weekly meal plan</h2>
+      <p style="font-size:13px;color:var(--ink-soft);margin:0 0 4px;">Built from your food database, scaled to hit your daily calorie &amp; macro targets. Tap "Edit" on any meal to swap in your own foods — edited days are kept when you regenerate.</p>
+      <button class="btn" id="btn-generate-plan">Generate new 7-day plan</button>
+    </div>
+    <div class="ad-slot" id="ad-slot-plan">Ad space — see CONFIG.ads to enable</div>
+    <div id="plan-output"></div>
+  </section>
+
+  <!-- ============ SHOPPING ============ -->
+  <section id="view-shop" class="view">
+    <div class="card">
+      <h2>Shopping list</h2>
+      <p style="font-size:13px;color:var(--ink-soft);margin:0 0 4px;">Auto-totalled from this week's meal plan.</p>
+      <button class="btn ghost" id="btn-clear-checks">Uncheck all</button>
+    </div>
+    <div class="card" id="shop-output"></div>
+    <div class="card" id="affiliate-shop"></div>
+  </section>
+
+  <!-- ============ SCANNER ============ -->
+  <section id="view-scan" class="view">
+    <div class="card">
+      <h2>Barcode scanner</h2>
+      <p style="font-size:13px;color:var(--ink-soft);margin:0 0 10px;">Point your camera at a product barcode to pull its nutrition facts and add it to your food database.</p>
+      <div id="reader"></div>
+      <button class="btn secondary" id="btn-scan-toggle">Start scanner</button>
+      <label style="margin-top:14px;">Or enter a barcode manually</label>
+      <div class="row" style="grid-template-columns:1fr auto;">
+        <input id="in-manual-barcode" placeholder="e.g. 737628064502">
+        <button class="btn small" id="btn-manual-lookup" style="margin-top:0;">Look up</button>
+      </div>
+    </div>
+    <div class="card" id="scan-result-card" style="display:none;"></div>
+
+    <div class="card">
+      <h2>Can't find it by barcode?</h2>
+      <p style="font-size:13px;color:var(--ink-soft);margin:0 0 10px;">Take a photo of the nutrition facts label instead — it'll read the numbers off the label for you to check before saving.</p>
+      <input type="file" accept="image/*" capture="environment" id="in-label-photo" style="display:none;">
+      <button class="btn secondary" id="btn-scan-label">📷 Scan nutrition label</button>
+      <div id="label-ocr-status"></div>
+    </div>
+    <div class="card" id="label-review-card" style="display:none;"></div>
+  </section>
+
+  <!-- ============ FOODS ============ -->
+  <section id="view-foods" class="view">
+    <div class="card">
+      <h2>Food database</h2>
+      <input class="search" id="food-search" placeholder="Search foods…">
+      <button class="btn secondary" id="btn-add-food">+ Add a food manually</button>
+    </div>
+    <div class="ad-slot" id="ad-slot-foods">Ad space — see CONFIG.ads to enable</div>
+    <div class="card" id="foods-list"></div>
+    <div class="card" id="affiliate-foods"></div>
+  </section>
+
+  <!-- ============ UPGRADE ============ -->
+  <section id="view-upgrade" class="view">
+    <div class="card" id="upgrade-status-card" style="text-align:center;"></div>
+    <div class="row" style="grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="plan-card">
+        <span class="badge" style="background:var(--ink-soft);">Free</span>
+        <div class="price">$0</div>
+        <ul>
+          <li>Calorie &amp; macro calculator</li>
+          <li>3 days of meal plan</li>
+          <li>5 barcode scans / month</li>
+          <li class="locked">Full 7-day plan</li>
+          <li class="locked">Unlimited scans</li>
+          <li class="locked">Unlimited custom foods</li>
+        </ul>
+      </div>
+      <div class="plan-card featured">
+        <span class="badge">Premium</span>
+        <div class="price">$4.99<span>/mo</span></div>
+        <ul>
+          <li>Everything in Free</li>
+          <li>Full 7-day meal plan</li>
+          <li>Unlimited barcode scans</li>
+          <li>Unlimited custom foods</li>
+          <li>No ads</li>
+        </ul>
+        <button class="btn" id="btn-upgrade">Upgrade</button>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px;">
+      <h2>Already paid?</h2>
+      <p style="font-size:13px;color:var(--ink-soft);">If checkout redirected you back here and premium hasn't unlocked, tap below to re-check your payment status.</p>
+      <button class="btn ghost" id="btn-recheck-payment">Re-check payment status</button>
+      <label style="margin-top:12px;">Have a license key?</label>
+      <div class="row" style="grid-template-columns:1fr auto;">
+        <input id="in-license-key" placeholder="Paste license key">
+        <button class="btn small" id="btn-apply-license" style="margin-top:0;">Apply</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="tabbar">
+  <button class="tab active" data-view="setup">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c1.2-4 4-6 7-6s5.8 2 7 6"/></svg>
+    Setup
+  </button>
+  <button class="tab" data-view="plan">
+    <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg>
+    Plan
+  </button>
+  <button class="tab" data-view="shop">
+    <svg viewBox="0 0 24 24"><path d="M6 8h12l-1.2 10.2a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+    Shop
+  </button>
+  <button class="tab" data-view="scan">
+    <svg viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3M20 8V5a1 1 0 0 0-1-1h-3M4 16v3a1 1 0 0 0 1 1h3M20 16v3a1 1 0 0 1-1 1h-3"/><path d="M4 12h16"/></svg>
+    Scan
+  </button>
+  <button class="tab" data-view="foods">
+    <svg viewBox="0 0 24 24"><path d="M12 3v18M6 8c0 0 -2 2 -2 5s2 5 2 5M18 8c0 0 2 2 2 5s-2 5-2 5"/></svg>
+    Foods
+  </button>
+  <button class="tab" data-view="upgrade">
+    <svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    Upgrade
+  </button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
+<script>
+/* =========================================================================
+   MONETIZATION CONFIG — edit these values, nothing else needs to change
+   ========================================================================= */
+const CONFIG = {
+  ads: {
+    enabled: false,                 // flip true once you have an AdSense account approved
+    adsenseClientId: 'ca-pub-0000000000000000', // your AdSense publisher id
+    adsenseSlotFoods: '0000000000',
+    adsenseSlotPlan: '0000000000',
+  },
+  affiliate: {
+    enabled: true,
+    items: [
+      { name:'Nike Zoom Fly 6', note:'Hyrox / race-day shoe', url:'https://www.amazon.com/s?k=nike+zoom+fly+6&tag=YOUR-AFFILIATE-TAG', img:'' },
+      { name:'Whey protein powder', note:'For hitting your protein target', url:'https://www.amazon.com/s?k=whey+protein&tag=YOUR-AFFILIATE-TAG', img:'' },
+      { name:'Food scale', note:'For accurate portioning against this plan', url:'https://www.amazon.com/s?k=digital+food+scale&tag=YOUR-AFFILIATE-TAG', img:'' },
+      { name:'Meal prep containers', note:'For batching the week’s plan', url:'https://www.amazon.com/s?k=meal+prep+containers&tag=YOUR-AFFILIATE-TAG', img:'' },
+    ],
+  },
+  premium: {
+    enabled: true,
+    priceDisplay: '$4.99/mo',
+    stripePaymentLink: 'https://buy.stripe.com/REPLACE_WITH_YOUR_PAYMENT_LINK', // create in Stripe Dashboard → Payment Links
+    verifyEndpoint: '/.netlify/functions/verify-payment', // see netlify/functions/verify-payment.js
+    freeLimits: { planDays: 3, scansPerMonth: 5, customFoods: 10 },
+    ownerMasterKey: '13579', // unlocks premium locally, no server round-trip — yours only, don't share it publicly
+  },
+};
+
+/* =========================================================================
+   STORAGE
+   ========================================================================= */
+const DB_KEY = 'ration_v1';
+function loadDB(){
+  try{
+    const raw = localStorage.getItem(DB_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { profile:null, targets:null, foods: seedFoods(), plan:null, shopChecks:{} };
+}
+let DB = loadDB();
+function save(){ try{ localStorage.setItem(DB_KEY, JSON.stringify(DB)); }catch(e){} }
+
+/* ---------- Premium / paywall state ----------
+   NOTE: this flag lives in localStorage for convenience, but the thing that
+   actually SETS it to true only ever happens after the serverless function
+   below confirms a real Stripe payment or a valid license key — a user
+   editing localStorage by hand just gives themselves a broken client-side
+   flag, not a working license your backend would recognize if you later
+   add server-side checks (e.g. gating the food-lookup API by license too). */
+function isPremium(){ return !!DB.premium; }
+
+function scanCountThisMonth(){
+  const key = new Date().toISOString().slice(0,7); // YYYY-MM
+  if(DB.scanLog?.month !== key){ DB.scanLog = { month:key, count:0 }; save(); }
+  return DB.scanLog.count;
+}
+function incrementScanCount(){
+  scanCountThisMonth();
+  DB.scanLog.count++;
+  save();
+}
+
+async function verifyPaymentSession(sessionId){
+  try{
+    const res = await fetch(`${CONFIG.premium.verifyEndpoint}?session_id=${encodeURIComponent(sessionId)}`);
+    const data = await res.json();
+    if(data.paid){
+      DB.premium = true; DB.licenseKey = data.licenseKey || null; save();
+      toast('Premium unlocked — thank you!');
+      renderUpgradeView();
+      return true;
+    }
+    toast('Payment not confirmed yet — try again in a moment');
+    return false;
+  }catch(e){
+    toast('Could not reach payment verification server');
+    return false;
+  }
+}
+
+function applyLicenseKeyLocally(key){
+  if(CONFIG.premium.ownerMasterKey && key === CONFIG.premium.ownerMasterKey){
+    DB.premium = true; DB.licenseKey = key; save();
+    toast('Premium unlocked'); renderUpgradeView();
+    return;
+  }
+  // Pairs with the /verify-license serverless function — checks the key
+  // against Stripe subscriptions server-side rather than trusting the client.
+  fetch(`${CONFIG.premium.verifyEndpoint.replace('verify-payment','verify-license')}?key=${encodeURIComponent(key)}`)
+    .then(r=>r.json())
+    .then(data=>{
+      if(data.valid){ DB.premium = true; DB.licenseKey = key; save(); toast('Premium unlocked'); renderUpgradeView(); }
+      else toast('That license key did not validate');
+    })
+    .catch(()=>toast('Could not reach verification server'));
+}
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+/* =========================================================================
+   SEED FOOD DATABASE — macros per 100g, category, mealTypes it suits
+   ========================================================================= */
+function seedFoods(){
+  return [
+    {id:'oats', name:'Rolled oats', cat:'Grains', kcal:379, p:13.5, c:67.7, f:6.9, meals:['breakfast']},
+    {id:'egg', name:'Whole eggs', cat:'Protein', kcal:143, p:12.6, c:0.7, f:9.5, meals:['breakfast']},
+    {id:'egg_white', name:'Egg whites', cat:'Protein', kcal:52, p:10.9, c:0.7, f:0.2, meals:['breakfast']},
+    {id:'greek_yogurt', name:'Greek yogurt (plain, 2%)', cat:'Dairy', kcal:73, p:9.9, c:3.9, f:1.9, meals:['breakfast','snack']},
+    {id:'banana', name:'Banana', cat:'Produce', kcal:89, p:1.1, c:22.8, f:0.3, meals:['breakfast','snack']},
+    {id:'blueberries', name:'Blueberries', cat:'Produce', kcal:57, p:0.7, c:14.5, f:0.3, meals:['breakfast','snack']},
+    {id:'almonds', name:'Almonds', cat:'Nuts & seeds', kcal:579, p:21.2, c:21.6, f:49.9, meals:['snack','breakfast']},
+    {id:'peanut_butter', name:'Peanut butter', cat:'Nuts & seeds', kcal:588, p:25, c:20, f:50, meals:['breakfast','snack']},
+    {id:'chicken_breast', name:'Chicken breast', cat:'Protein', kcal:165, p:31, c:0, f:3.6, meals:['lunch','dinner']},
+    {id:'ground_turkey', name:'Ground turkey (93/7)', cat:'Protein', kcal:150, p:20, c:0, f:8, meals:['lunch','dinner']},
+    {id:'salmon', name:'Salmon fillet', cat:'Protein', kcal:208, p:20, c:0, f:13, meals:['lunch','dinner']},
+    {id:'white_fish', name:'White fish (cod/tilapia)', cat:'Protein', kcal:96, p:20.9, c:0, f:0.9, meals:['lunch','dinner']},
+    {id:'lean_beef', name:'Lean beef (93/7)', cat:'Protein', kcal:172, p:21, c:0, f:9, meals:['lunch','dinner']},
+    {id:'tofu', name:'Firm tofu', cat:'Protein', kcal:144, p:15.8, c:2.8, f:8.7, meals:['lunch','dinner']},
+    {id:'rice', name:'White rice, cooked', cat:'Grains', kcal:130, p:2.7, c:28.2, f:0.3, meals:['lunch','dinner']},
+    {id:'brown_rice', name:'Brown rice, cooked', cat:'Grains', kcal:112, p:2.6, c:23.5, f:0.9, meals:['lunch','dinner']},
+    {id:'quinoa', name:'Quinoa, cooked', cat:'Grains', kcal:120, p:4.4, c:21.3, f:1.9, meals:['lunch','dinner']},
+    {id:'sweet_potato', name:'Sweet potato', cat:'Produce', kcal:86, p:1.6, c:20.1, f:0.1, meals:['lunch','dinner']},
+    {id:'potato', name:'Potato', cat:'Produce', kcal:77, p:2, c:17.5, f:0.1, meals:['lunch','dinner']},
+    {id:'pasta', name:'Pasta, cooked', cat:'Grains', kcal:131, p:5.1, c:25, f:1.1, meals:['lunch','dinner']},
+    {id:'broccoli', name:'Broccoli', cat:'Produce', kcal:34, p:2.8, c:6.6, f:0.4, meals:['lunch','dinner']},
+    {id:'mixed_veg', name:'Mixed vegetables', cat:'Produce', kcal:65, p:2.6, c:13, f:0.3, meals:['lunch','dinner']},
+    {id:'spinach', name:'Spinach', cat:'Produce', kcal:23, p:2.9, c:3.6, f:0.4, meals:['lunch','dinner']},
+    {id:'olive_oil', name:'Olive oil', cat:'Fats & oils', kcal:884, p:0, c:0, f:100, meals:['lunch','dinner']},
+    {id:'avocado', name:'Avocado', cat:'Produce', kcal:160, p:2, c:8.5, f:14.7, meals:['lunch','dinner','snack']},
+    {id:'black_beans', name:'Black beans, cooked', cat:'Legumes', kcal:132, p:8.9, c:23.7, f:0.5, meals:['lunch','dinner']},
+    {id:'chickpeas', name:'Chickpeas, cooked', cat:'Legumes', kcal:164, p:8.9, c:27.4, f:2.6, meals:['lunch','dinner']},
+    {id:'cottage_cheese', name:'Cottage cheese', cat:'Dairy', kcal:98, p:11.1, c:3.4, f:4.3, meals:['snack','breakfast']},
+    {id:'protein_powder', name:'Whey protein powder', cat:'Protein', kcal:380, p:80, c:8, f:4, meals:['snack','breakfast']},
+    {id:'milk', name:'Milk (2%)', cat:'Dairy', kcal:50, p:3.3, c:4.8, f:2, meals:['breakfast','snack']},
+    {id:'apple', name:'Apple', cat:'Produce', kcal:52, p:0.3, c:13.8, f:0.2, meals:['snack']},
+    {id:'rice_cakes', name:'Rice cakes', cat:'Grains', kcal:387, p:8.1, c:81.9, f:2.8, meals:['snack']},
+    {id:'hummus', name:'Hummus', cat:'Legumes', kcal:166, p:7.9, c:14.3, f:9.6, meals:['snack']},
+    {id:'cheddar', name:'Cheddar cheese', cat:'Dairy', kcal:403, p:24.9, c:1.3, f:33.1, meals:['snack','lunch']},
+    {id:'walnuts', name:'Walnuts', cat:'Nuts & seeds', kcal:654, p:15.2, c:13.7, f:65.2, meals:['snack']},
+  ];
+}
+
+/* =========================================================================
+   CALCULATIONS
+   ========================================================================= */
+function calcTargets(profile){
+  const {sex, age, height, weight, activity, goal, rate, proteinRate, fatPct} = profile;
+  const bmr = sex === 'male'
+    ? 10*weight + 6.25*height - 5*age + 5
+    : 10*weight + 6.25*height - 5*age - 161;
+  const tdee = bmr * activity;
+
+  let calAdjust = 0;
+  if(goal === 'lose') calAdjust = -(rate * 7700 / 7);
+  if(goal === 'gain') calAdjust = (rate * 7700 / 7);
+  const calories = Math.round(tdee + calAdjust);
+
+  const proteinG = Math.round(weight * proteinRate);
+  const proteinKcal = proteinG * 4;
+  const fatKcal = calories * fatPct;
+  const fatG = Math.round(fatKcal / 9);
+  const carbKcal = Math.max(calories - proteinKcal - fatKcal, 0);
+  const carbG = Math.round(carbKcal / 4);
+
+  return { bmr:Math.round(bmr), tdee:Math.round(tdee), calAdjust:Math.round(calAdjust),
+           calories, proteinG, fatG, carbG };
+}
+
+/* =========================================================================
+   DIAL RENDER
+   ========================================================================= */
+function drawDial(targets){
+  const c = document.getElementById('dial');
+  const ctx = c.getContext('2d');
+  const cx=66, cy=66, r=56, w=11;
+  ctx.clearRect(0,0,132,132);
+  const pKcal = targets.proteinG*4, cKcal = targets.carbG*4, fKcal = targets.fatG*9;
+  const total = pKcal+cKcal+fKcal;
+  const segs = [
+    {val:pKcal, color:'#2f6f4e'},
+    {val:cKcal, color:'#c1440e'},
+    {val:fKcal, color:'#c9962a'},
+  ];
+  let start = -Math.PI/2;
+  segs.forEach(s=>{
+    const frac = s.val/total;
+    const end = start + frac*2*Math.PI;
+    ctx.beginPath();
+    ctx.arc(cx,cy,r,start,end);
+    ctx.strokeStyle = s.color;
+    ctx.lineWidth = w;
+    ctx.lineCap='butt';
+    ctx.stroke();
+    start = end;
+  });
+  ctx.fillStyle = '#17241c';
+  ctx.textAlign='center';
+  ctx.font = '700 20px IBM Plex Mono, monospace';
+  ctx.fillText(targets.calories, cx, cy+2);
+  ctx.font = '600 10px Inter, sans-serif';
+  ctx.fillStyle = '#4b5850';
+  ctx.fillText('kcal / day', cx, cy+17);
+}
+
+function renderResults(profile, targets){
+  document.getElementById('results-card').style.display = 'block';
+  drawDial(targets);
+  const legend = document.getElementById('dial-legend');
+  legend.innerHTML = `
+    <div class="legend-row"><span><span class="dot" style="background:#2f6f4e"></span>Protein</span><span class="val">${targets.proteinG} g</span></div>
+    <div class="legend-row"><span><span class="dot" style="background:#c1440e"></span>Carbs</span><span class="val">${targets.carbG} g</span></div>
+    <div class="legend-row"><span><span class="dot" style="background:#c9962a"></span>Fat</span><span class="val">${targets.fatG} g</span></div>
+  `;
+}
+
+/* =========================================================================
+   MEAL PLAN GENERATION
+   Builds each meal from whatever is currently in the user's own food
+   database (seed foods + anything scanned or added manually), tagged by
+   which meal(s) it suits. Picks a protein-leaning food, a carb-leaning
+   food, a vegetable for lunch/dinner, and a fat source where available,
+   then scales the combination to hit that meal's share of the daily
+   calorie target.
+   ========================================================================= */
+const MEAL_SPLIT = { breakfast:0.25, lunch:0.32, dinner:0.32, snack:0.11 };
+
+function classifyMacro(food){
+  const pk=(food.p||0)*4, ck=(food.c||0)*4, fk=(food.f||0)*9;
+  const max = Math.max(pk,ck,fk);
+  if(max<=0) return 'other';
+  if(max===pk) return 'protein';
+  if(max===ck) return 'carb';
+  return 'fat';
+}
+
+function pickMealFoods(mealType, dayIndex){
+  let candidates = DB.foods.filter(f=>Array.isArray(f.meals) && f.meals.includes(mealType));
+  if(!candidates.length) candidates = DB.foods.slice(); // nothing tagged for this meal — use whatever exists
+  if(!candidates.length) return [];
+
+  const proteinFoods = candidates.filter(f=>classifyMacro(f)==='protein');
+  const carbFoods = candidates.filter(f=>classifyMacro(f)==='carb');
+  const fatFoods = candidates.filter(f=>classifyMacro(f)==='fat');
+  const produceFoods = candidates.filter(f=>f.cat==='Produce' && classifyMacro(f)!=='fat');
+
+  const pick = (arr, offset) => arr.length ? arr[(dayIndex+offset) % arr.length] : null;
+  const chosen = [];
+  const addUnique = (food, grams) => { if(food && !chosen.some(c=>c.f===food.id)) chosen.push({f:food.id, g:grams}); };
+
+  addUnique(pick(proteinFoods, 0), 100);
+  addUnique(pick(carbFoods, 1), 100);
+  if(mealType === 'lunch' || mealType === 'dinner'){
+    addUnique(pick(produceFoods, 2), 100);
+  }
+  const fatPick = pick(fatFoods, 3);
+  addUnique(fatPick, fatPick && fatPick.cat === 'Fats & oils' ? 8 : 30);
+
+  if(!chosen.length){
+    addUnique(pick(candidates, 0), 100); // last resort: at least one food so the meal isn't empty
+  }
+  return chosen;
+}
+
+function foodById(id){ return DB.foods.find(f=>f.id===id); }
+
+function computeMealTotals(items, adhoc=[]){
+  let kcal=0,p=0,c=0,f=0;
+  items.forEach(it=>{
+    const food = foodById(it.f);
+    if(!food) return;
+    const factor = it.g/100;
+    kcal += food.kcal*factor; p += food.p*factor; c += food.c*factor; f += food.f*factor;
+  });
+  adhoc.forEach(a=>{ kcal+=a.kcal||0; p+=a.p||0; c+=a.c||0; f+=a.f||0; });
+  return {kcal,p,c,f};
+}
+
+function scaleMeal(templateItems, targetKcal){
+  const base = computeMealTotals(templateItems);
+  const scale = base.kcal > 0 ? targetKcal / base.kcal : 1;
+  const items = templateItems.map(it=>({f:it.f, g: Math.max(5, Math.round(it.g*scale/5)*5)}));
+  return { items, adhoc:[], totals: computeMealTotals(items) };
+}
+
+function recalcMeal(meal){
+  meal.totals = computeMealTotals(meal.items, meal.adhoc||[]);
+}
+
+/* ---------- Custom meal editing ---------- */
+function addFoodToMeal(dayIdx, mealType, foodId){
+  const food = foodById(foodId); if(!food) return;
+  const gramsStr = prompt(`How many grams of ${food.name}?`, '100');
+  const grams = parseFloat(gramsStr);
+  if(!grams || grams<=0) return;
+  const day = DB.plan[dayIdx];
+  day.meals[mealType].items.push({f:foodId, g:Math.round(grams)});
+  day.custom = true;
+  recalcMeal(day.meals[mealType]);
+  save(); renderPlan();
+}
+
+function removeItemFromMeal(dayIdx, mealType, idx){
+  const day = DB.plan[dayIdx];
+  day.meals[mealType].items.splice(idx,1);
+  day.custom = true;
+  recalcMeal(day.meals[mealType]);
+  save(); renderPlan();
+}
+
+function addAdhocToMeal(dayIdx, mealType){
+  const name = prompt('What did you eat? (e.g. "Restaurant burger")'); if(!name) return;
+  const kcal = parseFloat(prompt('Total calories for that amount?')); if(isNaN(kcal)) return;
+  const p = parseFloat(prompt('Protein (g)? Leave blank for 0')) || 0;
+  const c = parseFloat(prompt('Carbs (g)? Leave blank for 0')) || 0;
+  const f = parseFloat(prompt('Fat (g)? Leave blank for 0')) || 0;
+  const day = DB.plan[dayIdx];
+  const meal = day.meals[mealType];
+  meal.adhoc = meal.adhoc || [];
+  meal.adhoc.push({name, kcal, p, c, f});
+  day.custom = true;
+  recalcMeal(meal);
+  save(); renderPlan();
+  toast('Logged "' + name + '" for this meal (not saved to your food database)');
+}
+
+function removeAdhocFromMeal(dayIdx, mealType, idx){
+  const day = DB.plan[dayIdx];
+  const meal = day.meals[mealType];
+  meal.adhoc.splice(idx,1);
+  day.custom = true;
+  recalcMeal(meal);
+  save(); renderPlan();
+}
+
+function resetDayToGenerated(dayIdx){
+  if(!confirm('Reset this day back to the auto-generated plan? Your custom edits for this day will be lost.')) return;
+  const targets = DB.targets;
+  const meals = {};
+  ['breakfast','lunch','dinner','snack'].forEach(type=>{
+    const targetKcal = targets.calories * MEAL_SPLIT[type];
+    meals[type] = scaleMeal(pickMealFoods(type, dayIdx), targetKcal);
+  });
+  DB.plan[dayIdx] = { day: DB.plan[dayIdx].day, meals, custom:false };
+  save(); renderPlan();
+}
+
+function diffClass(actual, target){
+  if(!target) return '';
+  const pct = Math.abs(actual-target)/target;
+  if(pct <= 0.05) return 'warn-ok';
+  if(pct <= 0.15) return 'warn-mid';
+  return 'warn-bad';
+}
+
+function generatePlan(targets, existingPlan){
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const plan = days.map((day,i)=>{
+    if(existingPlan && existingPlan[i] && existingPlan[i].custom){
+      return existingPlan[i]; // keep the user's customized day untouched
+    }
+    const meals = {};
+    ['breakfast','lunch','dinner','snack'].forEach(type=>{
+      const targetKcal = targets.calories * MEAL_SPLIT[type];
+      meals[type] = scaleMeal(pickMealFoods(type, i), targetKcal);
+    });
+    return { day, meals, custom:false };
+  });
+  return plan;
+}
+
+function dayTotals(dayPlan){
+  let kcal=0,p=0,c=0,f=0;
+  Object.values(dayPlan.meals).forEach(m=>{
+    kcal+=m.totals.kcal; p+=m.totals.p; c+=m.totals.c; f+=m.totals.f;
+  });
+  return {kcal,p,c,f};
+}
+
+/* =========================================================================
+   SHOPPING LIST — aggregate grams of each food across the whole plan
+   ========================================================================= */
+function buildShoppingList(plan){
+  const totals = {}; // foodId -> grams
+  plan.forEach(day=>{
+    Object.values(day.meals).forEach(m=>{
+      m.items.forEach(it=>{
+        totals[it.f] = (totals[it.f]||0) + it.g;
+      });
+    });
+  });
+  const byCat = {};
+  Object.entries(totals).forEach(([id,g])=>{
+    const food = foodById(id);
+    if(!food) return;
+    const cat = food.cat || 'Other';
+    byCat[cat] = byCat[cat] || [];
+    byCat[cat].push({id, name:food.name, grams:Math.round(g)});
+  });
+  return byCat;
+}
+
+/* =========================================================================
+   RENDER: PLAN VIEW
+   ========================================================================= */
+let activeDay = 0;
+let editingMealType = null;
+let mealSearchQuery = '';
+
+function renderPlan(){
+  const out = document.getElementById('plan-output');
+  if(!DB.plan){
+    out.innerHTML = `<div class="card"><div class="empty">No plan yet — set your targets on the Setup tab, then generate a plan.</div></div>`;
+    return;
+  }
+  const dayLimit = isPremium() ? DB.plan.length : CONFIG.premium.freeLimits.planDays;
+  const dayTabs = DB.plan.map((d,i)=>`<button data-day="${i}" class="${i===activeDay?'active':''}" ${i>=dayLimit?'data-locked="1"':''}>${d.day}${d.custom?'<span class="custom-dot"></span>':''}${i>=dayLimit?' 🔒':''}</button>`).join('');
+  if(activeDay >= dayLimit) activeDay = 0;
+  const d = DB.plan[activeDay];
+  const totals = dayTotals(d);
+  const targets = DB.targets || {};
+  const mealNames = {breakfast:'Breakfast',lunch:'Lunch',dinner:'Dinner',snack:'Snack'};
+  let mealsHtml = '';
+  ['breakfast','lunch','dinner','snack'].forEach(type=>{
+    const m = d.meals[type];
+    const isEditing = editingMealType === type;
+    const ingredients = m.items.map((it,idx)=>{
+      const food = foodById(it.f);
+      return `<div class="ingredient"><span>${food ? food.name : it.f}</span><span class="g">${it.g} g ${isEditing?`<button class="rm" data-rm-item="${idx}">×</button>`:''}</span></div>`;
+    }).join('');
+    const adhocHtml = (m.adhoc||[]).map((a,idx)=>{
+      return `<div class="ingredient"><span>${a.name} <span class="pill" style="margin-left:4px;">logged</span></span><span class="g">${Math.round(a.kcal)} kcal ${isEditing?`<button class="rm" data-rm-adhoc="${idx}">×</button>`:''}</span></div>`;
+    }).join('');
+
+    let editPanel = '';
+    if(isEditing){
+      const q = mealSearchQuery.trim().toLowerCase();
+      const matches = q ? DB.foods.filter(f=>f.name.toLowerCase().includes(q)).slice(0,8) : [];
+      editPanel = `
+        <div class="meal-edit-panel">
+          <input class="food-search-input" id="meal-food-search" placeholder="Search your food database…" value="${mealSearchQuery.replace(/"/g,'&quot;')}">
+          <div id="meal-food-results">
+            ${matches.map(f=>`
+              <div class="food-result-row">
+                <span class="fr-name">${f.name}</span>
+                <span class="fr-macro">${f.kcal} kcal/100g</span>
+                <button data-add-food="${f.id}">Add</button>
+              </div>
+            `).join('') || (q ? '<div style="font-size:12.5px;color:var(--ink-soft);padding:6px 0;">No matches — try the Foods tab to add it, or log a one-off below.</div>' : '')}
+          </div>
+          <div class="meal-edit-actions">
+            <button class="btn small ghost" id="btn-adhoc-add">+ Log one-off food</button>
+            <button class="btn small secondary" id="btn-meal-edit-done">Done editing</button>
+          </div>
+        </div>`;
+    }
+
+    mealsHtml += `
+      <div class="meal">
+        <div class="meal-head">
+          <span class="name">${mealNames[type]}</span>
+          <span class="kcal">${Math.round(m.totals.kcal)} kcal <button class="edit-btn" data-edit-meal="${type}">${isEditing?'Close':'Edit'}</button></span>
+        </div>
+        ${ingredients}${adhocHtml}
+        ${!m.items.length && !(m.adhoc||[]).length ? '<div style="font-size:12.5px;color:var(--ink-soft);padding:4px 0;">Empty — tap Edit to add foods.</div>' : ''}
+        <div class="macro-strip">
+          <span>P <b>${Math.round(m.totals.p)}g</b></span>
+          <span>C <b>${Math.round(m.totals.c)}g</b></span>
+          <span>F <b>${Math.round(m.totals.f)}g</b></span>
+        </div>
+        ${editPanel}
+      </div>`;
+  });
+
+  const cKcal = diffClass(totals.kcal, targets.calories);
+  const cP = diffClass(totals.p, targets.proteinG);
+  const cC = diffClass(totals.c, targets.carbG);
+  const cF = diffClass(totals.f, targets.fatG);
+
+  out.innerHTML = `
+    <div class="day-tabs">${dayTabs}</div>
+    ${d.custom ? `<div class="day-flags"><button data-reset-day="1">Reset this day to auto-generated</button></div>` : ''}
+    <div class="card">
+      ${mealsHtml}
+      <div class="day-summary">
+        <div>Calories<b class="${cKcal}">${Math.round(totals.kcal)}</b></div>
+        <div>Protein<b class="${cP}">${Math.round(totals.p)}g</b></div>
+        <div>Carbs<b class="${cC}">${Math.round(totals.c)}g</b></div>
+        <div>Fat<b class="${cF}">${Math.round(totals.f)}g</b></div>
+      </div>
+      ${targets.calories ? `<div style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;">vs target: ${targets.calories} kcal · P${targets.proteinG}g · C${targets.carbG}g · F${targets.fatG}g</div>` : ''}
+    </div>
+    ${dayLimit < DB.plan.length ? `
+    <div class="lock-cta">
+      <div class="lock-title">🔒 ${DB.plan.length - dayLimit} more days in your plan</div>
+      <div class="lock-sub">Free plans show the first ${dayLimit} days. Upgrade for the full week.</div>
+      <button class="btn small" onclick="showView('upgrade')">See Premium — ${CONFIG.premium.priceDisplay}</button>
+    </div>` : ''}
+  `;
+
+  out.querySelectorAll('.day-tabs button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(btn.dataset.locked){ showView('upgrade'); return; }
+      activeDay = +btn.dataset.day; editingMealType = null; mealSearchQuery=''; renderPlan();
+    });
+  });
+  const resetBtn = out.querySelector('[data-reset-day]');
+  if(resetBtn) resetBtn.addEventListener('click', ()=>resetDayToGenerated(activeDay));
+
+  out.querySelectorAll('[data-edit-meal]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const type = btn.dataset.editMeal;
+      editingMealType = editingMealType === type ? null : type;
+      mealSearchQuery = '';
+      renderPlan();
+    });
+  });
+  out.querySelectorAll('[data-rm-item]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{ e.stopPropagation(); removeItemFromMeal(activeDay, editingMealType, +btn.dataset.rmItem); });
+  });
+  out.querySelectorAll('[data-rm-adhoc]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{ e.stopPropagation(); removeAdhocFromMeal(activeDay, editingMealType, +btn.dataset.rmAdhoc); });
+  });
+  out.querySelectorAll('[data-add-food]').forEach(btn=>{
+    btn.addEventListener('click', ()=>addFoodToMeal(activeDay, editingMealType, btn.dataset.addFood));
+  });
+  const searchInput = out.querySelector('#meal-food-search');
+  if(searchInput){
+    searchInput.focus();
+    searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
+    searchInput.addEventListener('input', (e)=>{ mealSearchQuery = e.target.value; renderPlan(); });
+  }
+  const adhocBtn = out.querySelector('#btn-adhoc-add');
+  if(adhocBtn) adhocBtn.addEventListener('click', ()=>addAdhocToMeal(activeDay, editingMealType));
+  const doneBtn = out.querySelector('#btn-meal-edit-done');
+  if(doneBtn) doneBtn.addEventListener('click', ()=>{ editingMealType = null; mealSearchQuery=''; renderPlan(); });
+}
+
+/* =========================================================================
+   RENDER: SHOPPING VIEW
+   ========================================================================= */
+function renderShop(){
+  const out = document.getElementById('shop-output');
+  if(!DB.plan){
+    out.innerHTML = `<div class="empty">Generate a meal plan first — your shopping list builds automatically from it.</div>`;
+    return;
+  }
+  const byCat = buildShoppingList(DB.plan);
+  let html = '';
+  Object.keys(byCat).sort().forEach(cat=>{
+    html += `<div class="cat-title">${cat}</div>`;
+    byCat[cat].sort((a,b)=>a.name.localeCompare(b.name)).forEach(item=>{
+      const key = item.id;
+      const checked = !!DB.shopChecks[key];
+      html += `<div class="shop-item ${checked?'checked':''}" data-key="${key}">
+        <input type="checkbox" ${checked?'checked':''}>
+        <span class="name">${item.name}</span>
+        <span class="qty">${item.grams} g</span>
+      </div>`;
+    });
+  });
+  out.innerHTML = html || `<div class="empty">Nothing to show.</div>`;
+  out.querySelectorAll('.shop-item').forEach(row=>{
+    row.querySelector('input').addEventListener('change', (e)=>{
+      DB.shopChecks[row.dataset.key] = e.target.checked;
+      row.classList.toggle('checked', e.target.checked);
+      save();
+    });
+  });
+}
+
+/* =========================================================================
+   RENDER: FOODS VIEW
+   ========================================================================= */
+function renderFoods(filter=''){
+  const list = document.getElementById('foods-list');
+  const items = DB.foods.filter(f=>f.name.toLowerCase().includes(filter.toLowerCase()));
+  if(!items.length){ list.innerHTML = `<div class="empty">No foods match "${filter}".</div>`; return; }
+  list.innerHTML = items.sort((a,b)=>a.name.localeCompare(b.name)).map(f=>`
+    <div class="food-row" data-id="${f.id}">
+      <div>
+        <div class="fname">${f.name}</div>
+        <div class="fmacro">${f.kcal} kcal · P${f.p} C${f.c} F${f.f} /100g · ${f.cat}</div>
+      </div>
+      <button class="btn danger small" data-del="${f.id}">Remove</button>
+    </div>
+  `).join('');
+  list.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      DB.foods = DB.foods.filter(f=>f.id !== btn.dataset.del);
+      save(); renderFoods(document.getElementById('food-search').value);
+    });
+  });
+}
+
+function customFoodCount(){ return DB.foods.filter(f=>f.id.startsWith('custom_') || f.id.startsWith('off_')).length; }
+
+function promptAddFood(){
+  if(!isPremium() && customFoodCount() >= CONFIG.premium.freeLimits.customFoods){
+    toast(`Free plan allows ${CONFIG.premium.freeLimits.customFoods} custom foods`);
+    showView('upgrade');
+    return;
+  }
+  const name = prompt('Food name?'); if(!name) return;
+  const kcal = parseFloat(prompt('Calories per 100g?')); if(isNaN(kcal)) return;
+  const p = parseFloat(prompt('Protein (g) per 100g?')) || 0;
+  const c = parseFloat(prompt('Carbs (g) per 100g?')) || 0;
+  const f = parseFloat(prompt('Fat (g) per 100g?')) || 0;
+  const cat = prompt('Category? (e.g. Produce, Protein, Grains, Dairy, Snack)') || 'Other';
+  const id = 'custom_' + Date.now();
+  DB.foods.push({id, name, kcal, p, c, f, cat, meals:['snack']});
+  save(); renderFoods(); toast('Added ' + name + ' to your food database');
+}
+
+/* =========================================================================
+   BARCODE SCANNER + OPEN FOOD FACTS LOOKUP
+   ========================================================================= */
+let scanner = null, scanning = false;
+
+async function lookupBarcode(code){
+  if(!isPremium() && scanCountThisMonth() >= CONFIG.premium.freeLimits.scansPerMonth){
+    toast(`Free scan limit reached (${CONFIG.premium.freeLimits.scansPerMonth}/month)`);
+    showView('upgrade');
+    return;
+  }
+  incrementScanCount();
+  toast('Looking up ' + code + '…');
+  try{
+    const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json`);
+    const data = await res.json();
+    if(data.status !== 1){
+      document.getElementById('scan-result-card').style.display='block';
+      document.getElementById('scan-result-card').innerHTML = `<div class="empty">No product found for barcode ${code}. You can add it manually in the Foods tab.</div>`;
+      return;
+    }
+    const p = data.product;
+    const n = p.nutriments || {};
+    const food = {
+      id: 'off_' + code,
+      name: p.product_name || p.generic_name || ('Product ' + code),
+      cat: (p.categories_tags && p.categories_tags[0]) ? p.categories_tags[0].replace('en:','').replace(/-/g,' ') : 'Scanned',
+      kcal: Math.round(n['energy-kcal_100g'] || (n['energy_100g'] ? n['energy_100g']/4.184 : 0) || 0),
+      p: +(n['proteins_100g']||0).toFixed(1),
+      c: +(n['carbohydrates_100g']||0).toFixed(1),
+      f: +(n['fat_100g']||0).toFixed(1),
+      meals: ['snack'],
+      image: p.image_front_small_url || p.image_url || null,
+      barcode: code,
+    };
+    showScanResult(food);
+  }catch(e){
+    toast('Lookup failed — check your connection');
+  }
+}
+
+function showScanResult(food){
+  const card = document.getElementById('scan-result-card');
+  card.style.display = 'block';
+  card.innerHTML = `
+    <h2>Product found</h2>
+    <div class="scan-result">
+      ${food.image ? `<img src="${food.image}" alt="">` : ''}
+      <div>
+        <div style="font-weight:600;">${food.name}</div>
+        <span class="pill">${food.cat}</span>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--ink-soft);margin:10px 0 4px;">Values per 100g — double-check these, the source database is often wrong or incomplete. Edit anything that looks off before saving.</p>
+    <label>Food name</label>
+    <input id="scan-name" value="${food.name.replace(/"/g,'&quot;')}">
+    <div class="row3">
+      <div><label>Calories</label><input id="scan-kcal" type="number" value="${food.kcal}"></div>
+      <div><label>Protein (g)</label><input id="scan-p" type="number" value="${food.p}"></div>
+      <div><label>Carbs (g)</label><input id="scan-c" type="number" value="${food.c}"></div>
+    </div>
+    <div class="row">
+      <div><label>Fat (g)</label><input id="scan-f" type="number" value="${food.f}"></div>
+      <div></div>
+    </div>
+    <button class="btn" id="btn-save-scanned" style="margin-top:14px;">Add to my food database</button>
+  `;
+  document.getElementById('btn-save-scanned').addEventListener('click', ()=>{
+    const edited = {
+      ...food,
+      name: document.getElementById('scan-name').value.trim() || food.name,
+      kcal: parseFloat(document.getElementById('scan-kcal').value) || 0,
+      p: parseFloat(document.getElementById('scan-p').value) || 0,
+      c: parseFloat(document.getElementById('scan-c').value) || 0,
+      f: parseFloat(document.getElementById('scan-f').value) || 0,
+    };
+    DB.foods = DB.foods.filter(f=>f.id !== edited.id);
+    DB.foods.push(edited);
+    save();
+    toast('Saved "' + edited.name + '" to your food database');
+  });
+}
+
+/* =========================================================================
+   NUTRITION LABEL OCR (fallback when a barcode isn't found / doesn't scan)
+   Uses Tesseract.js entirely client-side — no server, no API key. OCR on a
+   photographed label is never perfect, so this pre-fills an editable form
+   rather than saving anything automatically.
+   ========================================================================= */
+function parseLabelText(text){
+  const clean = text.replace(/\r/g, '');
+  const grab = (re) => { const m = clean.match(re); return m ? parseFloat(m[1]) : null; };
+  return {
+    servingG: grab(/serving\s*size\D{0,15}?(\d+(?:\.\d+)?)\s*g/i),
+    kcal: grab(/(?:calories|energy)\D{0,15}?(\d+(?:\.\d+)?)\s*(?:kcal)?/i),
+    protein: grab(/protein\D{0,10}?(\d+(?:\.\d+)?)\s*g/i),
+    carbs: grab(/(?:total\s*)?carbohydrate\D{0,15}?(\d+(?:\.\d+)?)\s*g/i),
+    fat: grab(/(?:total\s*)?fat\D{0,10}?(\d+(?:\.\d+)?)\s*g/i),
+  };
+}
+
+function renderLabelReview(parsed, rawText){
+  const card = document.getElementById('label-review-card');
+  card.style.display = 'block';
+  const servingG = parsed.servingG || 100;
+  card.innerHTML = `
+    <h2>Check the numbers</h2>
+    <p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 6px;">OCR isn't perfect — fix anything that looks off before saving. Enter the values exactly as shown on the label for the serving size below.</p>
+    <label>Food name</label>
+    <input id="lbl-name" placeholder="e.g. Store-brand granola bar">
+    <div class="row">
+      <div><label>Serving size (g)</label><input id="lbl-serving" type="number" value="${servingG}"></div>
+      <div><label>Calories (per serving)</label><input id="lbl-kcal" type="number" value="${parsed.kcal ?? ''}"></div>
+    </div>
+    <div class="row3">
+      <div><label>Protein (g)</label><input id="lbl-protein" type="number" value="${parsed.protein ?? ''}"></div>
+      <div><label>Carbs (g)</label><input id="lbl-carbs" type="number" value="${parsed.carbs ?? ''}"></div>
+      <div><label>Fat (g)</label><input id="lbl-fat" type="number" value="${parsed.fat ?? ''}"></div>
+    </div>
+    <div class="meal-edit-actions">
+      <button class="btn small ghost" id="btn-label-discard">Discard</button>
+      <button class="btn small" id="btn-label-save" style="flex:1;">Add to food database</button>
+    </div>
+    <details style="margin-top:10px;"><summary style="font-size:11.5px;color:var(--ink-soft);cursor:pointer;">Raw OCR text (for troubleshooting)</summary><div class="ocr-raw-text">${(rawText||'').replace(/</g,'&lt;')}</div></details>
+  `;
+  document.getElementById('btn-label-discard').addEventListener('click', ()=>{
+    card.style.display = 'none'; card.innerHTML = '';
+  });
+  document.getElementById('btn-label-save').addEventListener('click', ()=>{
+    if(!isPremium() && customFoodCount() >= CONFIG.premium.freeLimits.customFoods){
+      toast(`Free plan allows ${CONFIG.premium.freeLimits.customFoods} custom foods`);
+      showView('upgrade');
+      return;
+    }
+    const name = document.getElementById('lbl-name').value.trim();
+    const serving = parseFloat(document.getElementById('lbl-serving').value) || 100;
+    const kcalServing = parseFloat(document.getElementById('lbl-kcal').value) || 0;
+    const pServing = parseFloat(document.getElementById('lbl-protein').value) || 0;
+    const cServing = parseFloat(document.getElementById('lbl-carbs').value) || 0;
+    const fServing = parseFloat(document.getElementById('lbl-fat').value) || 0;
+    if(!name){ toast('Give this food a name first'); return; }
+    if(!kcalServing){ toast('Calories is required'); return; }
+    const scale = 100 / serving;
+    const food = {
+      id: 'label_' + Date.now(),
+      name, cat: 'Scanned label',
+      kcal: Math.round(kcalServing*scale), p: +(pServing*scale).toFixed(1),
+      c: +(cServing*scale).toFixed(1), f: +(fServing*scale).toFixed(1),
+      meals: ['snack'],
+    };
+    DB.foods.push(food); save();
+    card.style.display = 'none'; card.innerHTML = '';
+    toast('Saved "' + name + '" to your food database');
+  });
+}
+
+async function scanNutritionLabel(file){
+  const statusEl = document.getElementById('label-ocr-status');
+  document.getElementById('label-review-card').style.display = 'none';
+  statusEl.innerHTML = `<div class="ocr-status"><span class="ocr-spinner"></span><span>Reading the label… this can take up to 30 seconds the first time.</span></div>`;
+  try{
+    const { data:{ text } } = await Tesseract.recognize(file, 'eng');
+    statusEl.innerHTML = '';
+    const parsed = parseLabelText(text);
+    if(!parsed.kcal && !parsed.protein && !parsed.carbs && !parsed.fat){
+      toast('Could not read numbers off that photo — try better lighting or a straighter angle');
+    }
+    renderLabelReview(parsed, text);
+  }catch(e){
+    statusEl.innerHTML = `<div class="ocr-status">Could not read that image — try again with better lighting.</div>`;
+  }
+}
+
+/* =========================================================================
+   CAMERA — BACK CAMERA ONLY, NO USER CHOICE
+   Strategy: enumerate the real video devices and pick the rear one
+   ourselves rather than trusting facingMode, which some Android hardware
+   reports incorrectly. Rear cameras are identified by label; among
+   several rear lenses we take the FIRST one, which on multi-lens phones
+   is the main (best-focusing) sensor rather than the ultra-wide.
+   Only if enumeration gives us nothing do we fall back to a facingMode
+   request.
+   ========================================================================= */
+async function getBackCameraId(){
+  try{
+    // Priming getUserMedia first — device labels are blank until camera
+    // permission has been granted at least once.
+    const primer = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    primer.getTracks().forEach(t=>t.stop());
+  }catch(e){ /* ignore — may already be granted, or denied */ }
+
+  let cams = [];
+  try{
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    cams = devices.filter(d=>d.kind === 'videoinput');
+  }catch(e){ return null; }
+  if(!cams.length) return null;
+
+  const isFront = (label='') => /front|face|selfie|user/i.test(label);
+  const isBack  = (label='') => /back|rear|environment|world/i.test(label);
+
+  // 1. Explicitly back-labelled cameras, first one wins (main lens).
+  const backCams = cams.filter(c=>isBack(c.label));
+  if(backCams.length) return backCams[0].deviceId;
+
+  // 2. Labels present but none say "back" — take anything not clearly front-facing.
+  const labelled = cams.filter(c=>c.label);
+  if(labelled.length){
+    const notFront = labelled.filter(c=>!isFront(c.label));
+    if(notFront.length) return notFront[0].deviceId;
+  }
+
+  // 3. Labels are blank/permission-restricted. On virtually every phone the
+  //    last enumerated camera is a rear one, so prefer that over the first.
+  return cams[cams.length - 1].deviceId;
+}
+
+function scannerConfig(){
+  return {
+    fps:10, qrbox:{width:280,height:160},
+    formatsToSupport:[
+      Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8,
+      Html5QrcodeSupportedFormats.UPC_A, Html5QrcodeSupportedFormats.UPC_E,
+      Html5QrcodeSupportedFormats.CODE_128,
+    ],
+    // Higher resolution + continuous autofocus — the default request is often
+    // low-res and fixed-focus, which is what causes blur at close barcode range.
+    videoConstraints: {
+      width: { ideal: 1920 }, height: { ideal: 1080 },
+      focusMode: 'continuous',
+      advanced: [{ focusMode: 'continuous' }],
+    },
+  };
+}
+
+async function startScanner(){
+  if(scanning) return;
+  if(!isPremium() && scanCountThisMonth() >= CONFIG.premium.freeLimits.scansPerMonth){
+    toast(`Free scan limit reached (${CONFIG.premium.freeLimits.scansPerMonth}/month)`);
+    showView('upgrade');
+    return;
+  }
+  scanning = true;
+  document.getElementById('btn-scan-toggle').textContent = 'Stop scanner';
+  scanner = new Html5Qrcode('reader');
+  const config = scannerConfig();
+
+  const backId = await getBackCameraId();
+  const cameraArg = backId ? { deviceId: { exact: backId } } : { facingMode: { exact: 'environment' } };
+
+  const onScan = (decodedText)=>{ lookupBarcode(decodedText); stopScanner(); };
+  const applyFocus = ()=>{ try{ scanner.applyVideoConstraints({ advanced:[{ focusMode:'continuous' }] }); }catch(e){} };
+
+  scanner.start(cameraArg, config, onScan, ()=>{})
+    .then(applyFocus)
+    .catch(()=>{
+      // Device rejected the specific deviceId — fall back to a strict rear request.
+      scanner.start({ facingMode: { exact: 'environment' } }, config, onScan, ()=>{})
+        .then(applyFocus)
+        .catch(()=>{
+          toast('Back camera unavailable — enter the barcode manually below');
+          scanning = false;
+          document.getElementById('btn-scan-toggle').textContent = 'Start scanner';
+        });
+    });
+}
+
+function stopScanner(){
+  if(scanner && scanning){
+    scanner.stop().then(()=>scanner.clear()).catch(()=>{});
+  }
+  scanning = false;
+  document.getElementById('btn-scan-toggle').textContent = 'Start scanner';
+}
+
+/* =========================================================================
+   ADS + AFFILIATE RENDERING
+   ========================================================================= */
+function renderAdSlots(){
+  const show = CONFIG.ads.enabled && !isPremium();
+  document.querySelectorAll('.ad-slot').forEach(el=>{
+    el.classList.toggle('hidden', !show);
+  });
+  // Real AdSense script injection happens once, only when enabled + not premium.
+  if(show && !window.__adsenseLoaded){
+    window.__adsenseLoaded = true;
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${CONFIG.ads.adsenseClientId}`;
+    s.crossOrigin = 'anonymous';
+    document.head.appendChild(s);
+    document.querySelectorAll('.ad-slot').forEach((el,i)=>{
+      el.innerHTML = `<ins class="adsbygoogle" style="display:block;width:100%;" data-ad-client="${CONFIG.ads.adsenseClientId}" data-ad-slot="${i===0?CONFIG.ads.adsenseSlotFoods:CONFIG.ads.adsenseSlotPlan}" data-ad-format="auto" data-full-width-responsive="true"></ins>`;
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    });
+  }
+}
+
+function renderAffiliate(){
+  if(!CONFIG.affiliate.enabled) return;
+  const html = `
+    <h2>Recommended gear</h2>
+    ${CONFIG.affiliate.items.map(item=>`
+      <div class="affiliate-card">
+        ${item.img ? `<img src="${item.img}" alt="">` : ''}
+        <div class="aff-body">
+          <div class="aff-name">${item.name}</div>
+          <div class="aff-note">${item.note}</div>
+          <a class="btn small" href="${item.url}" target="_blank" rel="noopener sponsored">View</a>
+        </div>
+      </div>
+    `).join('')}
+    <div class="aff-disclosure">Some links are affiliate links — we may earn a small commission at no extra cost to you.</div>
+  `;
+  const foodsEl = document.getElementById('affiliate-foods');
+  const shopEl = document.getElementById('affiliate-shop');
+  if(foodsEl) foodsEl.innerHTML = html;
+  if(shopEl) shopEl.innerHTML = html;
+}
+
+/* =========================================================================
+   UPGRADE VIEW
+   ========================================================================= */
+function renderUpgradeView(){
+  const statusCard = document.getElementById('upgrade-status-card');
+  if(isPremium()){
+    statusCard.innerHTML = `<span class="status-badge">✓ Premium active</span>
+      <p style="font-size:13px;color:var(--ink-soft);margin-top:10px;">All limits are removed. Thanks for supporting HyroFit.</p>`;
+  } else {
+    const used = scanCountThisMonth();
+    statusCard.innerHTML = `<span class="status-badge" style="background:#f0e6da;color:#8a5a1c;">Free plan</span>
+      <p style="font-size:13px;color:var(--ink-soft);margin-top:10px;">
+        ${used}/${CONFIG.premium.freeLimits.scansPerMonth} scans used this month ·
+        ${customFoodCount()}/${CONFIG.premium.freeLimits.customFoods} custom foods used
+      </p>`;
+  }
+  document.getElementById('btn-upgrade').style.display = isPremium() ? 'none' : 'block';
+}
+
+document.getElementById('btn-upgrade').addEventListener('click', ()=>{
+  if(!CONFIG.premium.stripePaymentLink || CONFIG.premium.stripePaymentLink.includes('REPLACE_WITH')){
+    toast('Add your Stripe Payment Link in CONFIG.premium.stripePaymentLink first');
+    return;
+  }
+  // Pass a client reference so the webhook/verify step can match this browser.
+  const clientRef = DB.clientRef || (DB.clientRef = 'c_' + Math.random().toString(36).slice(2));
+  save();
+  window.location.href = `${CONFIG.premium.stripePaymentLink}?client_reference_id=${clientRef}`;
+});
+document.getElementById('btn-recheck-payment').addEventListener('click', ()=>{
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get('session_id');
+  if(sessionId) verifyPaymentSession(sessionId);
+  else toast('No payment session found in the URL — complete checkout first');
+});
+document.getElementById('btn-apply-license').addEventListener('click', ()=>{
+  const key = document.getElementById('in-license-key').value.trim();
+  if(key) applyLicenseKeyLocally(key);
+});
+
+/* =========================================================================
+   NAV
+   ========================================================================= */
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.view===name));
+  if(name==='plan') renderPlan();
+  if(name==='shop'){ renderShop(); renderAffiliate(); }
+  if(name==='foods'){ renderFoods(document.getElementById('food-search').value); renderAffiliate(); }
+  if(name==='upgrade') renderUpgradeView();
+  if(name!=='scan') stopScanner();
+  renderAdSlots();
+}
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click', ()=>showView(t.dataset.view)));
+
+/* =========================================================================
+   WIRE UP SETUP
+   ========================================================================= */
+function fillFormFromProfile(){
+  if(!DB.profile) return;
+  const p = DB.profile;
+  document.getElementById('in-sex').value = p.sex;
+  document.getElementById('in-age').value = p.age;
+  document.getElementById('in-height').value = p.height;
+  document.getElementById('in-weight').value = p.weight;
+  document.getElementById('in-activity').value = p.activity;
+  document.getElementById('in-goal').value = p.goal;
+  document.getElementById('in-rate').value = p.rate || 0.5;
+  document.getElementById('in-protein-rate').value = p.proteinRate;
+  document.getElementById('in-fat-pct').value = p.fatPct;
+}
+
+document.getElementById('in-goal').addEventListener('change', (e)=>{
+  document.getElementById('rate-wrap').style.display = e.target.value==='maintain' ? 'none' : 'block';
+});
+
+document.getElementById('btn-calc').addEventListener('click', ()=>{
+  const profile = {
+    sex: document.getElementById('in-sex').value,
+    age: parseFloat(document.getElementById('in-age').value),
+    height: parseFloat(document.getElementById('in-height').value),
+    weight: parseFloat(document.getElementById('in-weight').value),
+    activity: parseFloat(document.getElementById('in-activity').value),
+    goal: document.getElementById('in-goal').value,
+    rate: parseFloat(document.getElementById('in-rate').value),
+    proteinRate: parseFloat(document.getElementById('in-protein-rate').value),
+    fatPct: parseFloat(document.getElementById('in-fat-pct').value),
+  };
+  if(!profile.age || !profile.height || !profile.weight){
+    toast('Fill in age, height and weight first');
+    return;
+  }
+  const targets = calcTargets(profile);
+  DB.profile = profile; DB.targets = targets; save();
+  renderResults(profile, targets);
+  document.getElementById('results-card').scrollIntoView({behavior:'smooth'});
+});
+
+document.getElementById('btn-goto-plan').addEventListener('click', ()=>{
+  DB.plan = generatePlan(DB.targets); save();
+  showView('plan');
+});
+
+document.getElementById('btn-generate-plan').addEventListener('click', ()=>{
+  if(!DB.targets){ toast('Set your targets on the Setup tab first'); showView('setup'); return; }
+  const hasCustom = DB.plan && DB.plan.some(d=>d.custom);
+  if(hasCustom && !confirm('You have custom-edited days. Regenerate will keep those and only refresh the rest. Continue?')) return;
+  activeDay = 0;
+  DB.plan = generatePlan(DB.targets, DB.plan); save();
+  renderPlan();
+  toast('Plan refreshed — your custom days were kept');
+});
+
+document.getElementById('btn-clear-checks').addEventListener('click', ()=>{
+  DB.shopChecks = {}; save(); renderShop();
+});
+
+document.getElementById('food-search').addEventListener('input', (e)=>renderFoods(e.target.value));
+document.getElementById('btn-add-food').addEventListener('click', promptAddFood);
+
+document.getElementById('btn-scan-toggle').addEventListener('click', ()=>{
+  scanning ? stopScanner() : startScanner();
+});
+document.getElementById('btn-manual-lookup').addEventListener('click', ()=>{
+  const code = document.getElementById('in-manual-barcode').value.trim();
+  if(code) lookupBarcode(code);
+});
+document.getElementById('btn-scan-label').addEventListener('click', ()=>{
+  document.getElementById('in-label-photo').click();
+});
+document.getElementById('in-label-photo').addEventListener('change', (e)=>{
+  const file = e.target.files && e.target.files[0];
+  if(file) scanNutritionLabel(file);
+  e.target.value = ''; // allow re-selecting the same photo later
+});
+
+/* =========================================================================
+   INIT
+   ========================================================================= */
+fillFormFromProfile();
+if(DB.targets) renderResults(DB.profile, DB.targets);
+renderFoods();
+renderAdSlots();
+
+(function checkReturningPayment(){
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get('session_id');
+  if(sessionId && !isPremium()){
+    verifyPaymentSession(sessionId).then(()=>{
+      // clean the URL so refreshing doesn't re-trigger verification
+      window.history.replaceState({}, '', window.location.pathname);
+    });
+  }
+})();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('service-worker.js').catch(()=>{ /* fine if unavailable, e.g. opened via file:// */ });
+  });
+}
+</script>
+</body>
+</html>
