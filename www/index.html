@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>HyroFit — Calorie, Macro &amp; Meal Planner</title>
-<meta name="description" content="Calculate your calories and macros, generate a weekly meal plan and shopping list, and scan barcodes to log food.">
+<title>HyroFit — Calorie &amp; Macro Tracker</title>
+<meta name="description" content="Calculate your calories and macros, log what you eat, build a shopping list from it, and scan barcodes to log food.">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2563eb">
 <link rel="icon" href="icon-192.png">
@@ -263,7 +263,7 @@ canvas#dial{flex-shrink:0;}
 
 <div class="topbar">
   <div class="brand"><span class="mark"></span><h1>HyroFit</h1></div>
-  <div class="sub">Calories, macros, meal plans &amp; shopping lists — built around you</div>
+  <div class="sub">Calories, macros &amp; shopping lists — built around you</div>
 </div>
 
 <main>
@@ -332,7 +332,6 @@ canvas#dial{flex-shrink:0;}
         <canvas id="dial" width="132" height="132"></canvas>
         <div class="dial-legend" id="dial-legend"></div>
       </div>
-      <button class="btn secondary" id="btn-goto-plan">Generate my weekly meal plan →</button>
     </div>
   </section>
 
@@ -351,22 +350,11 @@ canvas#dial{flex-shrink:0;}
     <div id="log-output"></div>
   </section>
 
-  <!-- ============ PLAN ============ -->
-  <section id="view-plan" class="view">
-    <div class="card">
-      <h2>Weekly meal plan</h2>
-      <p style="font-size:13px;color:var(--ink-soft);margin:0 0 4px;">Built from your food database, scaled to hit your daily calorie &amp; macro targets. Tap "Edit" on any meal to swap in your own foods — edited days are kept when you regenerate.</p>
-      <button class="btn" id="btn-generate-plan">Generate new 7-day plan</button>
-    </div>
-    <div class="ad-slot" id="ad-slot-plan">Ad space — see CONFIG.ads to enable</div>
-    <div id="plan-output"></div>
-  </section>
-
   <!-- ============ SHOPPING ============ -->
   <section id="view-shop" class="view">
     <div class="card">
       <h2>Shopping list</h2>
-      <p style="font-size:13px;color:var(--ink-soft);margin:0 0 4px;">Auto-totalled from this week's meal plan.</p>
+      <p style="font-size:13px;color:var(--ink-soft);margin:0 0 4px;">Built from your most recently logged day, ×7 for the week.</p>
       <button class="btn ghost" id="btn-clear-checks">Uncheck all</button>
     </div>
     <div class="card" id="shop-output"></div>
@@ -410,9 +398,8 @@ canvas#dial{flex-shrink:0;}
         <div class="price">$0</div>
         <ul>
           <li>Calorie &amp; macro calculator</li>
-          <li>3 days of meal plan</li>
+          <li>Food log &amp; shopping list</li>
           <li>5 barcode scans / month</li>
-          <li class="locked">Full 7-day plan</li>
           <li class="locked">Unlimited scans</li>
           <li class="locked">Unlimited custom foods</li>
         </ul>
@@ -422,7 +409,6 @@ canvas#dial{flex-shrink:0;}
         <div class="price">$4.99<span>/mo</span></div>
         <ul>
           <li>Everything in Free</li>
-          <li>Full 7-day meal plan</li>
           <li>Unlimited barcode scans</li>
           <li>Unlimited custom foods</li>
           <li>No ads</li>
@@ -452,10 +438,6 @@ canvas#dial{flex-shrink:0;}
   <button class="tab" data-view="log">
     <svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
     Log
-  </button>
-  <button class="tab" data-view="plan">
-    <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg>
-    Plan
   </button>
   <button class="tab" data-view="shop">
     <svg viewBox="0 0 24 24"><path d="M6 8h12l-1.2 10.2a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
@@ -487,15 +469,14 @@ const CONFIG = {
     enabled: false,                 // flip true once you have an AdSense account approved
     adsenseClientId: 'ca-pub-0000000000000000', // your AdSense publisher id
     adsenseSlotFoods: '0000000000',
-    adsenseSlotPlan: '0000000000',
   },
   affiliate: {
     enabled: true,
     items: [
       { name:'Nike Zoom Fly 6', note:'Hyrox / race-day shoe', url:'https://www.amazon.com/s?k=nike+zoom+fly+6&tag=YOUR-AFFILIATE-TAG', img:'' },
       { name:'Whey protein powder', note:'For hitting your protein target', url:'https://www.amazon.com/s?k=whey+protein&tag=YOUR-AFFILIATE-TAG', img:'' },
-      { name:'Food scale', note:'For accurate portioning against this plan', url:'https://www.amazon.com/s?k=digital+food+scale&tag=YOUR-AFFILIATE-TAG', img:'' },
-      { name:'Meal prep containers', note:'For batching the week’s plan', url:'https://www.amazon.com/s?k=meal+prep+containers&tag=YOUR-AFFILIATE-TAG', img:'' },
+      { name:'Food scale', note:'For accurate portioning against your targets', url:'https://www.amazon.com/s?k=digital+food+scale&tag=YOUR-AFFILIATE-TAG', img:'' },
+      { name:'Meal prep containers', note:'For batching your shopping list', url:'https://www.amazon.com/s?k=meal+prep+containers&tag=YOUR-AFFILIATE-TAG', img:'' },
     ],
   },
   premium: {
@@ -503,7 +484,7 @@ const CONFIG = {
     priceDisplay: '$4.99/mo',
     stripePaymentLink: 'https://buy.stripe.com/REPLACE_WITH_YOUR_PAYMENT_LINK', // create in Stripe Dashboard → Payment Links
     verifyEndpoint: '/.netlify/functions/verify-payment', // see netlify/functions/verify-payment.js
-    freeLimits: { planDays: 3, scansPerMonth: 5, customFoods: 10 },
+    freeLimits: { scansPerMonth: 5, customFoods: 10 },
     ownerMasterKey: '13579', // unlocks premium locally, no server round-trip — yours only, don't share it publicly
   },
 };
@@ -517,7 +498,7 @@ function loadDB(){
     const raw = localStorage.getItem(DB_KEY);
     if(raw) return JSON.parse(raw);
   }catch(e){}
-  return { profile:null, targets:null, foods: seedFoods().map(f=>({...f, source:'seed'})), plan:null, shopChecks:{}, log:{} };
+  return { profile:null, targets:null, foods: seedFoods().map(f=>({...f, source:'seed'})), shopChecks:{}, log:{} };
 }
 let DB = loadDB();
 function save(){ try{ localStorage.setItem(DB_KEY, JSON.stringify(DB)); }catch(e){} }
@@ -700,49 +681,6 @@ function renderResults(profile, targets){
   `;
 }
 
-/* =========================================================================
-   MEAL PLAN GENERATION
-   Solves for grams directly against each meal's protein/fat/calorie share
-   of the daily targets, rather than picking arbitrary portions and scaling
-   the whole meal by one factor (that approach let protein drift far off
-   target since scaling drags every ingredient by the same multiplier).
-   Order of operations: protein food sized to hit the protein target,
-   fat food sized to hit whatever fat target remains after that, carb food
-   sized to fill the remaining calories — mirroring how the day-level
-   targets themselves are built (protein and fat are the fixed goals,
-   carbs are the flexible remainder).
-   Foods the user has scanned or typed in by hand are treated as a strong
-   preference — they're picked most days, rotating among themselves if
-   there are several, with the regular food database mixed in periodically
-   for variety rather than every scanned item being crammed into one day.
-   ========================================================================= */
-const MEAL_SPLIT = { breakfast:0.25, lunch:0.32, dinner:0.32, snack:0.11 };
-
-function classifyMacro(food){
-  const pk=(food.p||0)*4, ck=(food.c||0)*4, fk=(food.f||0)*9;
-  const max = Math.max(pk,ck,fk);
-  if(max<=0) return 'other';
-  if(max===pk) return 'protein';
-  if(max===ck) return 'carb';
-  return 'fat';
-}
-
-function isPreferredFood(food){ return food.source === 'scanned' || food.source === 'manual'; }
-
-// Picks a food for a category, favoring the user's own scanned/manual
-// foods most days while still rotating in the regular database sometimes.
-function chooseFood(dayIndex, offset, foods){
-  if(!foods.length) return null;
-  const preferred = foods.filter(isPreferredFood);
-  const regular = foods.filter(f=>!isPreferredFood(f));
-  const idx = dayIndex + offset;
-  if(preferred.length){
-    if(regular.length && idx % 5 === 4) return regular[idx % regular.length]; // 1 day in 5: variety from the regular database
-    return preferred[idx % preferred.length]; // otherwise rotate among the user's own foods
-  }
-  return regular.length ? regular[idx % regular.length] : null;
-}
-
 function foodById(id){ return DB.foods.find(f=>f.id===id); }
 
 function computeMealTotals(items, adhoc=[]){
@@ -761,175 +699,12 @@ function recalcMeal(meal){
   meal.totals = computeMealTotals(meal.items, meal.adhoc||[]);
 }
 
-function buildMeal(mealType, dayIndex, mealTargets){
-  let candidates = DB.foods.filter(f=>Array.isArray(f.meals) && f.meals.includes(mealType));
-  if(!candidates.length) candidates = DB.foods.slice();
-  if(!candidates.length) return { items:[], adhoc:[], totals:{kcal:0,p:0,c:0,f:0} };
-
-  const proteinFoods = candidates.filter(f=>classifyMacro(f)==='protein');
-  const carbFoods = candidates.filter(f=>classifyMacro(f)==='carb');
-  const fatFoods = candidates.filter(f=>classifyMacro(f)==='fat');
-  const produceFoods = candidates.filter(f=>f.cat==='Produce' && classifyMacro(f)!=='fat');
-
-  const proteinFood = chooseFood(dayIndex, 0, proteinFoods);
-  const carbFood = chooseFood(dayIndex, 1, carbFoods);
-  const fatFood = chooseFood(dayIndex, 3, fatFoods);
-  const produceFood = (mealType==='lunch'||mealType==='dinner') ? chooseFood(dayIndex, 2, produceFoods) : null;
-
-  const clamp = (v,lo,hi)=>Math.max(lo,Math.min(hi,v));
-  const roundG = g => Math.max(5, Math.round(g/5)*5);
-  const items = [];
-
-  // 1. Produce first: fixed modest portion, small but non-zero macro impact
-  //    that needs to be accounted for before sizing the other foods.
-  if(produceFood){
-    items.push({f:produceFood.id, g: roundG(110)});
-  }
-
-  // 2. Protein food, initial estimate against the full protein target.
-  let proteinIdx = -1;
-  if(proteinFood){
-    const g = proteinFood.p > 0 ? (mealTargets.p/proteinFood.p)*100 : 120;
-    items.push({f:proteinFood.id, g: roundG(clamp(g, 15, 400))});
-    proteinIdx = items.length - 1;
-  }
-
-  let running = computeMealTotals(items);
-
-  // 3. Fat food sized to whatever fat target remains after produce + the
-  //    protein source's own fat content (many protein foods aren't fat-free).
-  if(fatFood){
-    const remainingFat = mealTargets.f - running.f;
-    if(remainingFat > 3){
-      const g = fatFood.f > 0 ? (remainingFat/fatFood.f)*100 : 10;
-      items.push({f:fatFood.id, g: roundG(clamp(g, 3, 60))});
-      running = computeMealTotals(items);
-    }
-  }
-
-  // 4. Re-solve the protein food now that produce and fat are locked in —
-  //    both of those often carry meaningful protein of their own (nuts,
-  //    vegetables), and without this correction the meal ends up well over
-  //    the protein target rather than on it.
-  if(proteinIdx >= 0 && proteinFood.p > 0){
-    const others = items.filter((_,idx)=>idx!==proteinIdx);
-    const otherProtein = computeMealTotals(others).p;
-    const remainingProtein = Math.max(mealTargets.p - otherProtein, 0);
-    items[proteinIdx].g = roundG(clamp((remainingProtein/proteinFood.p)*100, 15, 400));
-    running = computeMealTotals(items);
-  }
-
-  // 5. Carb food fills whatever calories are left — the flexible macro,
-  //    same philosophy as the day-level target calculation. Sized against
-  //    the now-corrected protein/fat/produce.
-  if(carbFood){
-    const remainingKcal = Math.max(mealTargets.kcal - running.kcal, 0);
-    const g = carbFood.kcal > 0 ? (remainingKcal/carbFood.kcal)*100 : 100;
-    items.push({f:carbFood.id, g: roundG(clamp(g, 15, 500))});
-  }
-
-  // 6. Final correction: carb sources carry some protein too (rice, oats),
-  //    so re-solve the protein food one last time against everything else
-  //    now finalized. This is what actually gets the meal's protein onto
-  //    the target instead of consistently running high.
-  if(proteinIdx >= 0 && proteinFood.p > 0){
-    const others = items.filter((_,idx)=>idx!==proteinIdx);
-    const otherProtein = computeMealTotals(others).p;
-    const remainingProtein = Math.max(mealTargets.p - otherProtein, 0);
-    items[proteinIdx].g = roundG(clamp((remainingProtein/proteinFood.p)*100, 15, 400));
-  }
-
-  if(!items.length){
-    const any = chooseFood(dayIndex, 0, candidates);
-    if(any) items.push({f:any.id, g:100});
-  }
-
-  return { items, adhoc:[], totals: computeMealTotals(items) };
-}
-
-function mealTargetsFor(targets, type){
-  const split = MEAL_SPLIT[type];
-  return { kcal: targets.calories*split, p: targets.proteinG*split, c: targets.carbG*split, f: targets.fatG*split };
-}
-
-/* ---------- Custom meal editing ---------- */
-function addFoodToMeal(dayIdx, mealType, foodId){
-  const food = foodById(foodId); if(!food) return;
-  const gramsStr = prompt(`How many grams of ${food.name}?`, '100');
-  const grams = parseFloat(gramsStr);
-  if(!grams || grams<=0) return;
-  const day = DB.plan[dayIdx];
-  day.meals[mealType].items.push({f:foodId, g:Math.round(grams)});
-  day.custom = true;
-  recalcMeal(day.meals[mealType]);
-  save(); renderPlan();
-}
-
-function removeItemFromMeal(dayIdx, mealType, idx){
-  const day = DB.plan[dayIdx];
-  day.meals[mealType].items.splice(idx,1);
-  day.custom = true;
-  recalcMeal(day.meals[mealType]);
-  save(); renderPlan();
-}
-
-function addAdhocToMeal(dayIdx, mealType){
-  const name = prompt('What did you eat? (e.g. "Restaurant burger")'); if(!name) return;
-  const kcal = parseFloat(prompt('Total calories for that amount?')); if(isNaN(kcal)) return;
-  const p = parseFloat(prompt('Protein (g)? Leave blank for 0')) || 0;
-  const c = parseFloat(prompt('Carbs (g)? Leave blank for 0')) || 0;
-  const f = parseFloat(prompt('Fat (g)? Leave blank for 0')) || 0;
-  const day = DB.plan[dayIdx];
-  const meal = day.meals[mealType];
-  meal.adhoc = meal.adhoc || [];
-  meal.adhoc.push({name, kcal, p, c, f});
-  day.custom = true;
-  recalcMeal(meal);
-  save(); renderPlan();
-  toast('Logged "' + name + '" for this meal (not saved to your food database)');
-}
-
-function removeAdhocFromMeal(dayIdx, mealType, idx){
-  const day = DB.plan[dayIdx];
-  const meal = day.meals[mealType];
-  meal.adhoc.splice(idx,1);
-  day.custom = true;
-  recalcMeal(meal);
-  save(); renderPlan();
-}
-
-function resetDayToGenerated(dayIdx){
-  if(!confirm('Reset this day back to the auto-generated plan? Your custom edits for this day will be lost.')) return;
-  const targets = DB.targets;
-  const meals = {};
-  ['breakfast','lunch','dinner','snack'].forEach(type=>{
-    meals[type] = buildMeal(type, dayIdx, mealTargetsFor(targets, type));
-  });
-  DB.plan[dayIdx] = { day: DB.plan[dayIdx].day, meals, custom:false };
-  save(); renderPlan();
-}
-
 function diffClass(actual, target){
   if(!target) return '';
   const pct = Math.abs(actual-target)/target;
   if(pct <= 0.05) return 'warn-ok';
   if(pct <= 0.15) return 'warn-mid';
   return 'warn-bad';
-}
-
-function generatePlan(targets, existingPlan){
-  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const plan = days.map((day,i)=>{
-    if(existingPlan && existingPlan[i] && existingPlan[i].custom){
-      return existingPlan[i]; // keep the user's customized day untouched
-    }
-    const meals = {};
-    ['breakfast','lunch','dinner','snack'].forEach(type=>{
-      meals[type] = buildMeal(type, i, mealTargetsFor(targets, type));
-    });
-    return { day, meals, custom:false };
-  });
-  return plan;
 }
 
 function sumMealsTotals(mealsObj){
@@ -940,173 +715,9 @@ function sumMealsTotals(mealsObj){
   return {kcal,p,c,f};
 }
 
-function dayTotals(dayPlan){
-  return sumMealsTotals(dayPlan.meals);
-}
-
 /* =========================================================================
-   SHOPPING LIST — aggregate grams of each food across the whole plan
-   ========================================================================= */
-function buildShoppingList(plan){
-  const totals = {}; // foodId -> grams
-  plan.forEach(day=>{
-    Object.values(day.meals).forEach(m=>{
-      m.items.forEach(it=>{
-        totals[it.f] = (totals[it.f]||0) + it.g;
-      });
-    });
-  });
-  const byCat = {};
-  Object.entries(totals).forEach(([id,g])=>{
-    const food = foodById(id);
-    if(!food) return;
-    const cat = food.cat || 'Other';
-    byCat[cat] = byCat[cat] || [];
-    byCat[cat].push({id, name:food.name, grams:Math.round(g)});
-  });
-  return byCat;
-}
-
-/* =========================================================================
-   RENDER: PLAN VIEW
-   ========================================================================= */
-let activeDay = 0;
-let editingMealType = null;
-let mealSearchQuery = '';
-
-function renderPlan(){
-  const out = document.getElementById('plan-output');
-  if(!DB.plan){
-    out.innerHTML = `<div class="card"><div class="empty">No plan yet — set your targets on the Setup tab, then generate a plan.</div></div>`;
-    return;
-  }
-  const dayLimit = isPremium() ? DB.plan.length : CONFIG.premium.freeLimits.planDays;
-  const dayTabs = DB.plan.map((d,i)=>`<button data-day="${i}" class="${i===activeDay?'active':''}" ${i>=dayLimit?'data-locked="1"':''}>${d.day}${d.custom?'<span class="custom-dot"></span>':''}${i>=dayLimit?' 🔒':''}</button>`).join('');
-  if(activeDay >= dayLimit) activeDay = 0;
-  const d = DB.plan[activeDay];
-  const totals = dayTotals(d);
-  const targets = DB.targets || {};
-  const mealNames = {breakfast:'Breakfast',lunch:'Lunch',dinner:'Dinner',snack:'Snack'};
-  let mealsHtml = '';
-  ['breakfast','lunch','dinner','snack'].forEach(type=>{
-    const m = d.meals[type];
-    const isEditing = editingMealType === type;
-    const ingredients = m.items.map((it,idx)=>{
-      const food = foodById(it.f);
-      return `<div class="ingredient"><span>${food ? food.name : it.f}</span><span class="g">${it.g} g ${isEditing?`<button class="rm" data-rm-item="${idx}">×</button>`:''}</span></div>`;
-    }).join('');
-    const adhocHtml = (m.adhoc||[]).map((a,idx)=>{
-      return `<div class="ingredient"><span>${a.name} <span class="pill" style="margin-left:4px;">logged</span></span><span class="g">${Math.round(a.kcal)} kcal ${isEditing?`<button class="rm" data-rm-adhoc="${idx}">×</button>`:''}</span></div>`;
-    }).join('');
-
-    let editPanel = '';
-    if(isEditing){
-      const q = mealSearchQuery.trim().toLowerCase();
-      const matches = q ? DB.foods.filter(f=>f.name.toLowerCase().includes(q)).slice(0,8) : [];
-      editPanel = `
-        <div class="meal-edit-panel">
-          <input class="food-search-input" id="meal-food-search" placeholder="Search your food database…" value="${mealSearchQuery.replace(/"/g,'&quot;')}">
-          <div id="meal-food-results">
-            ${matches.map(f=>`
-              <div class="food-result-row">
-                <span class="fr-name">${f.name}</span>
-                <span class="fr-macro">${f.kcal} kcal/100g</span>
-                <button data-add-food="${f.id}">Add</button>
-              </div>
-            `).join('') || (q ? '<div style="font-size:12.5px;color:var(--ink-soft);padding:6px 0;">No matches — try the Foods tab to add it, or log a one-off below.</div>' : '')}
-          </div>
-          <div class="meal-edit-actions">
-            <button class="btn small ghost" id="btn-adhoc-add">+ Log one-off food</button>
-            <button class="btn small secondary" id="btn-meal-edit-done">Done editing</button>
-          </div>
-        </div>`;
-    }
-
-    mealsHtml += `
-      <div class="meal">
-        <div class="meal-head">
-          <span class="name">${mealNames[type]}</span>
-          <span class="kcal">${Math.round(m.totals.kcal)} kcal <button class="edit-btn" data-edit-meal="${type}">${isEditing?'Close':'Edit'}</button></span>
-        </div>
-        ${ingredients}${adhocHtml}
-        ${!m.items.length && !(m.adhoc||[]).length ? '<div style="font-size:12.5px;color:var(--ink-soft);padding:4px 0;">Empty — tap Edit to add foods.</div>' : ''}
-        <div class="macro-strip">
-          <span>P <b>${Math.round(m.totals.p)}g</b></span>
-          <span>C <b>${Math.round(m.totals.c)}g</b></span>
-          <span>F <b>${Math.round(m.totals.f)}g</b></span>
-        </div>
-        ${editPanel}
-      </div>`;
-  });
-
-  const cKcal = diffClass(totals.kcal, targets.calories);
-  const cP = diffClass(totals.p, targets.proteinG);
-  const cC = diffClass(totals.c, targets.carbG);
-  const cF = diffClass(totals.f, targets.fatG);
-
-  out.innerHTML = `
-    <div class="day-tabs">${dayTabs}</div>
-    ${d.custom ? `<div class="day-flags"><button data-reset-day="1">Reset this day to auto-generated</button></div>` : ''}
-    <div class="card">
-      ${mealsHtml}
-      <div class="day-summary">
-        <div>Calories<b class="${cKcal}">${Math.round(totals.kcal)}</b></div>
-        <div>Protein<b class="${cP}">${Math.round(totals.p)}g</b></div>
-        <div>Carbs<b class="${cC}">${Math.round(totals.c)}g</b></div>
-        <div>Fat<b class="${cF}">${Math.round(totals.f)}g</b></div>
-      </div>
-      ${targets.calories ? `<div style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;">vs target: ${targets.calories} kcal · P${targets.proteinG}g · C${targets.carbG}g · F${targets.fatG}g</div>` : ''}
-    </div>
-    ${dayLimit < DB.plan.length ? `
-    <div class="lock-cta">
-      <div class="lock-title">🔒 ${DB.plan.length - dayLimit} more days in your plan</div>
-      <div class="lock-sub">Free plans show the first ${dayLimit} days. Upgrade for the full week.</div>
-      <button class="btn small" onclick="showView('upgrade')">See Premium — ${CONFIG.premium.priceDisplay}</button>
-    </div>` : ''}
-  `;
-
-  out.querySelectorAll('.day-tabs button').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      if(btn.dataset.locked){ showView('upgrade'); return; }
-      activeDay = +btn.dataset.day; editingMealType = null; mealSearchQuery=''; renderPlan();
-    });
-  });
-  const resetBtn = out.querySelector('[data-reset-day]');
-  if(resetBtn) resetBtn.addEventListener('click', ()=>resetDayToGenerated(activeDay));
-
-  out.querySelectorAll('[data-edit-meal]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const type = btn.dataset.editMeal;
-      editingMealType = editingMealType === type ? null : type;
-      mealSearchQuery = '';
-      renderPlan();
-    });
-  });
-  out.querySelectorAll('[data-rm-item]').forEach(btn=>{
-    btn.addEventListener('click', (e)=>{ e.stopPropagation(); removeItemFromMeal(activeDay, editingMealType, +btn.dataset.rmItem); });
-  });
-  out.querySelectorAll('[data-rm-adhoc]').forEach(btn=>{
-    btn.addEventListener('click', (e)=>{ e.stopPropagation(); removeAdhocFromMeal(activeDay, editingMealType, +btn.dataset.rmAdhoc); });
-  });
-  out.querySelectorAll('[data-add-food]').forEach(btn=>{
-    btn.addEventListener('click', ()=>addFoodToMeal(activeDay, editingMealType, btn.dataset.addFood));
-  });
-  const searchInput = out.querySelector('#meal-food-search');
-  if(searchInput){
-    searchInput.focus();
-    searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
-    searchInput.addEventListener('input', (e)=>{ mealSearchQuery = e.target.value; renderPlan(); });
-  }
-  const adhocBtn = out.querySelector('#btn-adhoc-add');
-  if(adhocBtn) adhocBtn.addEventListener('click', ()=>addAdhocToMeal(activeDay, editingMealType));
-  const doneBtn = out.querySelector('#btn-meal-edit-done');
-  if(doneBtn) doneBtn.addEventListener('click', ()=>{ editingMealType = null; mealSearchQuery=''; renderPlan(); });
-}
-
-/* =========================================================================
-   FOOD LOG — what the user actually ate, by day, independent of the plan.
-   Same meal-editor pattern as the Plan tab (search database, add grams,
-   log one-off items), but navigated by date instead of a generated week.
+   FOOD LOG — what the user actually ate, by day.
+   Search database, add grams, or log one-off items, navigated by date.
    ========================================================================= */
 function todayStr(){
   const d = new Date();
@@ -1301,16 +912,51 @@ document.getElementById('btn-log-today').addEventListener('click', ()=>{
 
 /* =========================================================================
    RENDER: SHOPPING VIEW
+   Built from the most recently logged day in the Log tab, multiplied by 7
+   — there's no meal plan to aggregate from, so the week is a projection of
+   whatever you most recently actually ate.
    ========================================================================= */
+function mostRecentLoggedDate(){
+  if(!DB.log) return null;
+  const dates = Object.keys(DB.log).filter(dateStr=>{
+    const day = DB.log[dateStr];
+    return ['breakfast','lunch','dinner','snack'].some(type=>{
+      const m = day[type];
+      return (m.items && m.items.length) || (m.adhoc && m.adhoc.length);
+    });
+  }).sort();
+  return dates.length ? dates[dates.length-1] : null;
+}
+
+function buildShoppingList(logDay, multiplier=1){
+  const totals = {}; // foodId -> grams
+  Object.values(logDay).forEach(m=>{
+    m.items.forEach(it=>{
+      totals[it.f] = (totals[it.f]||0) + it.g*multiplier;
+    });
+  });
+  const byCat = {};
+  Object.entries(totals).forEach(([id,g])=>{
+    const food = foodById(id);
+    if(!food) return;
+    const cat = food.cat || 'Other';
+    byCat[cat] = byCat[cat] || [];
+    byCat[cat].push({id, name:food.name, grams:Math.round(g)});
+  });
+  return byCat;
+}
+
 function renderShop(){
   const out = document.getElementById('shop-output');
-  if(!DB.plan){
-    out.innerHTML = `<div class="empty">Generate a meal plan first — your shopping list builds automatically from it.</div>`;
+  const dateStr = mostRecentLoggedDate();
+  if(!dateStr){
+    out.innerHTML = `<div class="empty">Log some food in the Log tab first — your shopping list builds from your most recent day, ×7 for the week.</div>`;
     return;
   }
-  const byCat = buildShoppingList(DB.plan);
-  let html = '';
-  Object.keys(byCat).sort().forEach(cat=>{
+  const byCat = buildShoppingList(getLogDay(dateStr), 7);
+  let html = `<div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:8px;">Based on ${formatLogDateLabel(dateStr)} (${dateStr}), ×7 for the week.</div>`;
+  const cats = Object.keys(byCat);
+  cats.sort().forEach(cat=>{
     html += `<div class="cat-title">${cat}</div>`;
     byCat[cat].sort((a,b)=>a.name.localeCompare(b.name)).forEach(item=>{
       const key = item.id;
@@ -1322,7 +968,7 @@ function renderShop(){
       </div>`;
     });
   });
-  out.innerHTML = html || `<div class="empty">Nothing to show.</div>`;
+  out.innerHTML = cats.length ? html : `<div class="empty">That day's log has no database foods to shop for (one-off logged items aren't included).</div>`;
   out.querySelectorAll('.shop-item').forEach(row=>{
     row.querySelector('input').addEventListener('change', (e)=>{
       DB.shopChecks[row.dataset.key] = e.target.checked;
@@ -1549,7 +1195,7 @@ function renderAdSlots(){
     s.crossOrigin = 'anonymous';
     document.head.appendChild(s);
     document.querySelectorAll('.ad-slot').forEach((el,i)=>{
-      el.innerHTML = `<ins class="adsbygoogle" style="display:block;width:100%;" data-ad-client="${CONFIG.ads.adsenseClientId}" data-ad-slot="${i===0?CONFIG.ads.adsenseSlotFoods:CONFIG.ads.adsenseSlotPlan}" data-ad-format="auto" data-full-width-responsive="true"></ins>`;
+      el.innerHTML = `<ins class="adsbygoogle" style="display:block;width:100%;" data-ad-client="${CONFIG.ads.adsenseClientId}" data-ad-slot="${CONFIG.ads.adsenseSlotFoods}" data-ad-format="auto" data-full-width-responsive="true"></ins>`;
       (window.adsbygoogle = window.adsbygoogle || []).push({});
     });
   }
@@ -1625,7 +1271,6 @@ function showView(name){
   document.getElementById('view-'+name).classList.add('active');
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.view===name));
   if(name==='log') renderLog();
-  if(name==='plan') renderPlan();
   if(name==='shop'){ renderShop(); renderAffiliate(); }
   if(name==='foods'){ renderFoods(document.getElementById('food-search').value); renderAffiliate(); }
   if(name==='upgrade') renderUpgradeView();
@@ -1675,21 +1320,6 @@ document.getElementById('btn-calc').addEventListener('click', ()=>{
   DB.profile = profile; DB.targets = targets; save();
   renderResults(profile, targets);
   document.getElementById('results-card').scrollIntoView({behavior:'smooth'});
-});
-
-document.getElementById('btn-goto-plan').addEventListener('click', ()=>{
-  DB.plan = generatePlan(DB.targets); save();
-  showView('plan');
-});
-
-document.getElementById('btn-generate-plan').addEventListener('click', ()=>{
-  if(!DB.targets){ toast('Set your targets on the Setup tab first'); showView('setup'); return; }
-  const hasCustom = DB.plan && DB.plan.some(d=>d.custom);
-  if(hasCustom && !confirm('You have custom-edited days. Regenerate will keep those and only refresh the rest. Continue?')) return;
-  activeDay = 0;
-  DB.plan = generatePlan(DB.targets, DB.plan); save();
-  renderPlan();
-  toast('Plan refreshed — your custom days were kept');
 });
 
 document.getElementById('btn-clear-checks').addEventListener('click', ()=>{
