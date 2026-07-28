@@ -127,16 +127,17 @@ canvas#dial{flex-shrink:0;}
 .tabbar{
   position:fixed;bottom:0;left:0;right:0;z-index:30;
   background:var(--ink);
-  display:flex;justify-content:space-around;padding:9px 2px calc(9px + env(safe-area-inset-bottom));
+  display:flex;justify-content:space-around;padding:8px 2px calc(8px + env(safe-area-inset-bottom));
   box-shadow:0 -8px 24px -12px rgba(0,0,0,.35);
+  overflow-x:auto;
 }
 .tab{
-  background:none;border:none;color:#7b8087;font-size:9.5px;font-weight:600;
-  display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;
-  padding:5px 4px;border-radius:11px;letter-spacing:.01em;flex:1;min-width:0;
+  background:none;border:none;color:#7b8087;font-size:9px;font-weight:600;
+  display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;
+  padding:5px 3px;border-radius:10px;letter-spacing:0;flex:1;min-width:42px;
   transition:background .15s, color .15s;
 }
-.tab svg{width:19px;height:19px;stroke:#7b8087;fill:none;stroke-width:1.8;transition:stroke .15s;}
+.tab svg{width:18px;height:18px;stroke:#7b8087;fill:none;stroke-width:1.8;transition:stroke .15s;}
 .tab.active{color:#fff;background:rgba(37,99,235,.22);}
 .tab.active svg{stroke:var(--primary);}
 
@@ -242,7 +243,15 @@ canvas#dial{flex-shrink:0;}
 /* ---------- Meal editor ---------- */
 .meal-head .edit-btn{background:none;border:none;color:var(--primary);font-size:12px;font-weight:700;cursor:pointer;padding:2px 4px;}
 .custom-dot{width:6px;height:6px;border-radius:50%;background:var(--carb);display:inline-block;margin-left:4px;vertical-align:middle;}
-.ingredient .rm{background:none;border:none;color:var(--danger);font-size:15px;cursor:pointer;padding:0 4px;line-height:1;}
+.ingredient .rm, .rm{background:none;border:none;color:var(--danger);font-size:15px;cursor:pointer;padding:0 4px;line-height:1;}
+
+/* ---------- Training programs / log ---------- */
+.exercise-row{padding:8px 0;border-bottom:1px solid var(--line);}
+.exercise-row:last-child{border-bottom:none;}
+.exercise-row .ex-name{font-weight:700;font-size:13.5px;}
+.exercise-row .ex-detail{color:var(--ink-soft);font-size:12.5px;margin-top:1px;}
+.exercise-row .ex-rest{color:var(--ink-soft);font-size:11px;font-family:'IBM Plex Mono',monospace;margin-top:2px;}
+.exercise-row input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px;vertical-align:middle;}
 .meal-edit-panel{background:var(--tint);border:1px solid var(--line);border-radius:12px;padding:13px;margin-top:8px;}
 .food-search-input{margin:0 0 6px;}
 .food-result-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;}
@@ -390,6 +399,28 @@ canvas#dial{flex-shrink:0;}
     <div class="card" id="affiliate-foods"></div>
   </section>
 
+  <!-- ============ TRAIN ============ -->
+  <section id="view-train" class="view">
+    <div class="card">
+      <div class="day-tabs" id="train-level-tabs"></div>
+      <div class="row" style="grid-template-columns:1fr 1fr;gap:8px;margin-top:2px;">
+        <button class="btn small" id="train-subtab-program" style="margin-top:0;">Program</button>
+        <button class="btn small ghost" id="train-subtab-log" style="margin-top:0;">My Log</button>
+      </div>
+    </div>
+    <div id="train-output"></div>
+  </section>
+
+  <!-- ============ SHOES ============ -->
+  <section id="view-shoes" class="view">
+    <div class="card">
+      <h2>Shoe tier list</h2>
+      <p style="font-size:13px;color:var(--ink-soft);margin:0 0 4px;">Curated rankings — what's actually worth buying for Hyrox.</p>
+      <button class="btn secondary" id="btn-add-shoe" style="display:none;">+ Add a shoe (owner)</button>
+    </div>
+    <div id="shoes-output"></div>
+  </section>
+
   <!-- ============ UPGRADE ============ -->
   <section id="view-upgrade" class="view">
     <div class="card" id="upgrade-status-card" style="text-align:center;"></div>
@@ -452,6 +483,14 @@ canvas#dial{flex-shrink:0;}
     <svg viewBox="0 0 24 24"><path d="M12 3v18M6 8c0 0 -2 2 -2 5s2 5 2 5M18 8c0 0 2 2 2 5s-2 5-2 5"/></svg>
     Foods
   </button>
+  <button class="tab" data-view="train">
+    <svg viewBox="0 0 24 24"><path d="M6.5 6.5 4 4M17.5 17.5 20 20M2 12h3M19 12h3M6.5 17.5 4 20M17.5 6.5 20 4"/><circle cx="12" cy="12" r="4.5"/></svg>
+    Train
+  </button>
+  <button class="tab" data-view="shoes">
+    <svg viewBox="0 0 24 24"><path d="M2 18h20v2H2z"/><path d="M2 18v-3l4-2 3 1 5-3 3 1 5-2v8"/></svg>
+    Shoes
+  </button>
   <button class="tab" data-view="upgrade">
     <svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
     Upgrade
@@ -497,9 +536,27 @@ const DB_KEY = 'ration_v1';
 function loadDB(){
   try{
     const raw = localStorage.getItem(DB_KEY);
-    if(raw) return JSON.parse(raw);
+    if(raw){
+      const db = JSON.parse(raw);
+      // Backfill fields added in later versions so existing local data doesn't break.
+      if(!db.log) db.log = {};
+      if(!db.shopChecks) db.shopChecks = {};
+      if(!db.programs) db.programs = seedTrainingPrograms();
+      if(!db.trainLog) db.trainLog = {};
+      if(!db.shoes) db.shoes = [];
+      if(typeof db.isOwner !== 'boolean') db.isOwner = false;
+      return db;
+    }
   }catch(e){}
-  return { profile:null, targets:null, foods: seedFoods().map(f=>({...f, source:'seed'})), shopChecks:{}, log:{} };
+  return {
+    profile:null, targets:null,
+    foods: seedFoods().map(f=>({...f, source:'seed'})),
+    shopChecks:{}, log:{},
+    programs: seedTrainingPrograms(),
+    trainLog:{},
+    shoes:[],
+    isOwner:false,
+  };
 }
 let DB = loadDB();
 function save(){ try{ localStorage.setItem(DB_KEY, JSON.stringify(DB)); }catch(e){} }
@@ -512,6 +569,7 @@ function save(){ try{ localStorage.setItem(DB_KEY, JSON.stringify(DB)); }catch(e
    flag, not a working license your backend would recognize if you later
    add server-side checks (e.g. gating the food-lookup API by license too). */
 function isPremium(){ return !!DB.premium; }
+function isOwner(){ return !!DB.isOwner; }
 
 function scanCountThisMonth(){
   const key = new Date().toISOString().slice(0,7); // YYYY-MM
@@ -544,8 +602,8 @@ async function verifyPaymentSession(sessionId){
 
 function applyLicenseKeyLocally(key){
   if(CONFIG.premium.ownerMasterKey && key === CONFIG.premium.ownerMasterKey){
-    DB.premium = true; DB.licenseKey = key; save();
-    toast('Premium unlocked'); renderUpgradeView();
+    DB.premium = true; DB.isOwner = true; DB.licenseKey = key; save();
+    toast('Premium + owner mode unlocked'); renderUpgradeView();
     return;
   }
   // Pairs with the /verify-license serverless function — checks the key
@@ -607,6 +665,156 @@ function seedFoods(){
     {id:'cheddar', name:'Cheddar cheese', cat:'Dairy', kcal:403, p:24.9, c:1.3, f:33.1, meals:['snack','lunch']},
     {id:'walnuts', name:'Walnuts', cat:'Nuts & seeds', kcal:654, p:15.2, c:13.7, f:65.2, meals:['snack']},
   ];
+}
+
+/* =========================================================================
+   TRAINING PROGRAMS — static content, owner-editable in-app.
+   Each exercise is {name, detail, rest} — detail holds sets/reps or
+   distance/weight as written (source notation varies too much between
+   strength lifts and Hyrox stations to force into rigid columns without
+   risking misrepresenting the numbers); rest is always its own field.
+   ========================================================================= */
+function seedTrainingPrograms(){
+  return {
+    advanced: {
+      off: { level:'advanced', season:'off', days: [
+        { day:'Monday', title:'Full body + Hyrox skill', blocks:[
+          { title:'Full body weights', exercises:[
+            {name:'DB Bench', detail:'3 sets, 12/10/8 reps — heavier each set', rest:'1:30 min'},
+            {name:'Cable Lat Pull Down', detail:'3 sets, 12/10/8 reps — heavier each set', rest:'1 min'},
+            {name:'Lateral Shoulder Raises', detail:'3 sets, 10/10/10 reps', rest:'45 sec'},
+            {name:'Biceps Preacher Curl (DB, on bench)', detail:'3 sets, 10/10/10 reps', rest:'1 min'},
+            {name:'Rope Triceps Pull Downs', detail:'3 sets, 12/10/8 reps — heavier each set', rest:'1 min'},
+            {name:'Bulgarian Split Squats', detail:'3 sets, 12/10/8 reps — heavier each set', rest:'1:30 min'},
+            {name:'Abs', detail:'Any exercise for core/abs, 3 sets of chosen', rest:''},
+          ]},
+          { title:'Hyrox section', exercises:[
+            {name:'Run', detail:'800m, Zone 3', rest:''},
+            {name:'SkiErg', detail:'500m', rest:''},
+            {name:'Sled Push', detail:'2 × 20m @ race weight + 50kg', rest:''},
+            {name:'Sled Pull', detail:'2 × 20m @ race weight + 50kg', rest:''},
+            {name:'Run', detail:'800m, Zone 3', rest:''},
+          ]},
+        ]},
+        { day:'Tuesday', title:'Zone 2 engine', blocks:[
+          { title:'', exercises:[
+            {name:'Easy Run (treadmill)', detail:'60 min', rest:''},
+          ]},
+        ]},
+        { day:'Wednesday', title:'Hyrox main session', blocks:[
+          { title:'2 Rounds', rounds:2, roundsNote:'Rest 2–3 min, or until HR returns to mid Zone 3', exercises:[
+            {name:'Run', detail:'1km', rest:''},
+            {name:'SkiErg', detail:'750m', rest:''},
+            {name:'Sled Push', detail:'30m @ race weight + 50kg', rest:''},
+            {name:'Sled Pull', detail:'30m @ race weight + 50kg', rest:''},
+            {name:'Row', detail:'750m', rest:''},
+            {name:'Burpee Broad Jumps', detail:'15 reps', rest:''},
+            {name:'Farmer Carry', detail:'40m, heavier than race weights', rest:''},
+            {name:'Walking Lunges', detail:'30 reps @ race weight + 10kg', rest:''},
+            {name:'Wall Balls', detail:'20 reps @ race weight + extra kg', rest:''},
+          ], notes:'Focus: race simulation, pacing practice, station tolerance, consistent output across rounds.' },
+        ]},
+        { day:'Thursday', title:'Full body', blocks:[
+          { title:'', exercises:[
+            {name:'DB Incline Bench', detail:'3 sets, 12/10/8 reps — heavier each set', rest:'1:30 min'},
+            {name:'Seated Rows', detail:'3 sets, 12/10/8 reps — heavier each set', rest:'1 min'},
+            {name:'BB Military Press', detail:'3 sets, 10/10/10 reps', rest:'45 sec'},
+            {name:'Biceps Hammer Curl (DB, on bench)', detail:'3 sets, 10/10/10 reps', rest:'1 min'},
+            {name:'Seated Dumbbell Tricep Extension', detail:'3 sets, 12/10/8 reps — heavier each set', rest:'1 min'},
+            {name:'Hack Squats', detail:'3 sets, 12/10/8 reps — heavier each set', rest:'1:30 min'},
+            {name:'Standing Calf Raises', detail:'3 sets, 15 reps', rest:'1 min'},
+          ]},
+        ]},
+        { day:'Friday', title:'Full body + Hyrox', blocks:[
+          { title:'Full body weights', exercises:[
+            {name:'Machine Flies', detail:'3 sets, 12/10/8 reps — heavier each set', rest:'1:30 min'},
+            {name:'BB Bent Over Rows', detail:'3 sets, 12/10/8 reps — heavier each set', rest:'1 min'},
+            {name:'Reverse Pec Deck', detail:'3 sets, 10/10/10 reps', rest:'45 sec'},
+            {name:'EZ Bar Spider Curl (on bench)', detail:'3 sets, 10/10/10 reps', rest:'1 min'},
+            {name:'Triceps Dips', detail:'3 sets, 15/15/15 reps', rest:'1 min'},
+            {name:'Romanian Deadlifts', detail:'12/10/8 reps — heavier each set', rest:'1 min'},
+            {name:'Abs', detail:'Any exercise for core/abs, 3 sets of chosen', rest:''},
+          ]},
+          { title:'Hyrox Speed Block', exercises:[
+            {name:'Run', detail:'1km', rest:''},
+            {name:'SkiErg', detail:'500–750m', rest:''},
+            {name:'Run', detail:'1km', rest:''},
+            {name:'Sled Push', detail:'40m @ race weight + 50kg', rest:''},
+            {name:'Sled Pull', detail:'40m @ race weight + 50kg', rest:''},
+            {name:'Wall Balls', detail:'40 reps @ race weight + extra kg', rest:''},
+          ]},
+        ]},
+      ]},
+      in: { level:'advanced', season:'in', days: [
+        { day:'Monday', title:'Full body + Hyrox skill', blocks:[
+          { title:'Full body weights', exercises:[
+            {name:'DB Bench', detail:'3 sets, 12/10/8 reps — heavier each set', rest:'1:30 min'},
+            {name:'Cable Lat Pull Down', detail:'3 sets, 12/10/8 reps — heavier each set', rest:'1 min'},
+            {name:'Lateral Shoulder Raises', detail:'3 sets, 10/10/10 reps', rest:'45 sec'},
+            {name:'Biceps Preacher Curl (DB, on bench)', detail:'3 sets, 10/10/10 reps', rest:'1 min'},
+            {name:'Rope Triceps Pull Downs', detail:'3 sets, 12/10/8 reps — heavier each set', rest:'1 min'},
+            {name:'Leg Extensions', detail:'3 sets, 12/10/8 reps — heavier each set', rest:'1:30 min'},
+            {name:'Abs', detail:'Any exercise for core/abs, 3 sets of chosen', rest:''},
+          ]},
+          { title:'Hyrox section — speed work', exercises:[
+            {name:'Run', detail:'4–5 × 1km @ goal Hyrox race pace', rest:'90 sec – 2 min'},
+          ]},
+        ]},
+        { day:'Tuesday', title:'Zone 2 engine', blocks:[
+          { title:'', exercises:[
+            {name:'Easy Run (treadmill)', detail:'60 min', rest:''},
+          ]},
+        ]},
+        { day:'Wednesday', title:'Hyrox main session — Week B (race-specific)', blocks:[
+          { title:'Round 1', restNote:'Rest 4 min', exercises:[
+            {name:'Run', detail:'750m @ race pace', rest:''},
+            {name:'Sled Push', detail:'40m @ race weight + 50kg', rest:''},
+            {name:'Run', detail:'750m @ race pace', rest:''},
+            {name:'Burpee Broad Jumps', detail:'50m', rest:''},
+            {name:'Run', detail:'750m @ race pace', rest:''},
+            {name:'Farmer Carry', detail:'70m', rest:''},
+          ]},
+          { title:'Round 2', exercises:[
+            {name:'Run', detail:'750m @ race pace', rest:''},
+            {name:'Sled Pull', detail:'40m @ race weight + 50kg', rest:''},
+            {name:'Run', detail:'750m @ race pace', rest:''},
+            {name:'Walking Lunges', detail:'50m @ race weight + 10kg', rest:''},
+            {name:'Run', detail:'750m @ race pace, @ race weight + extra kg', rest:''},
+            {name:'Wall Balls', detail:'50–70 reps', rest:''},
+          ]},
+        ]},
+        { day:'Thursday', title:'Full body', blocks:[
+          { title:'', exercises:[
+            {name:'DB Incline Bench', detail:'3 sets, 12/10/8 reps — heavier each set', rest:'1:30 min'},
+            {name:'Seated Rows', detail:'3 sets, 12/10/8 reps — heavier each set', rest:'1 min'},
+            {name:'BB Military Press', detail:'3 sets, 10/10/10 reps', rest:'45 sec'},
+            {name:'Biceps Hammer Curl (DB, on bench)', detail:'3 sets, 10/10/10 reps', rest:'1 min'},
+            {name:'Seated Dumbbell Tricep Extension', detail:'3 sets, 12/10/8 reps — heavier each set', rest:'1 min'},
+            {name:'Hack Squats / 1-Leg Leg Press', detail:'3 sets, 12/10/8 reps — heavier each set', rest:'1:30 min'},
+            {name:'Standing Calf Raises', detail:'3 sets, 15 reps', rest:'1 min'},
+          ]},
+        ]},
+        { day:'Friday', title:'Full body + Hyrox', blocks:[
+          { title:'Full body weights', exercises:[
+            {name:'Machine Flies', detail:'3 sets, 12/10/8 reps — heavier each set', rest:'1:30 min'},
+            {name:'BB Bent Over Rows', detail:'3 sets, 12/10/8 reps — heavier each set', rest:'1 min'},
+            {name:'Reverse Pec Deck', detail:'3 sets, 10/10/10 reps', rest:'45 sec'},
+            {name:'EZ Bar Spider Curl (on bench)', detail:'3 sets, 10/10/10 reps', rest:'1 min'},
+            {name:'Triceps Dips', detail:'3 sets, 15/15/15 reps', rest:'1 min'},
+            {name:'Glute Machine Bridge', detail:'12/10/8 reps — heavier each set', rest:'1 min'},
+            {name:'Abs', detail:'Any exercise for core/abs, 3 sets of chosen', rest:''},
+          ]},
+          { title:'3 Rounds', rounds:3, roundsNote:'Rest 60–90 sec', exercises:[
+            {name:'Run', detail:'800m, race pace effort', rest:''},
+            {name:'SkiErg', detail:'500m, controlled hard (Zone 3–4)', rest:''},
+            {name:'Wall Balls', detail:'20 reps', rest:''},
+          ]},
+        ]},
+      ]},
+    },
+    intermediate: { off:null, in:null },
+    beginner: { off:null, in:null },
+  };
 }
 
 /* =========================================================================
@@ -984,6 +1192,260 @@ function renderShop(){
 }
 
 /* =========================================================================
+   RENDER: TRAIN VIEW — program viewer, training log, owner edit mode
+   ========================================================================= */
+let trainLevel = 'advanced';
+let trainSeason = 'off';
+let trainSubtab = 'program';
+let trainEditMode = false;
+let trainLogDate = todayStr();
+
+function renderTrain(){
+  const levelTabsEl = document.getElementById('train-level-tabs');
+  const levels = ['beginner','intermediate','advanced'];
+  levelTabsEl.innerHTML = levels.map(l=>`<button data-level="${l}" class="${l===trainLevel?'active':''}">${l.charAt(0).toUpperCase()+l.slice(1)}</button>`).join('');
+  levelTabsEl.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ trainLevel = btn.dataset.level; renderTrain(); });
+  });
+
+  document.getElementById('train-subtab-program').className = 'btn small' + (trainSubtab==='program' ? '' : ' ghost');
+  document.getElementById('train-subtab-log').className = 'btn small' + (trainSubtab==='log' ? '' : ' ghost');
+
+  if(trainSubtab === 'program') renderTrainProgram();
+  else renderTrainLog();
+}
+
+function wireSeasonToggle(out){
+  out.querySelectorAll('[data-season]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ trainSeason = btn.dataset.season; renderTrainProgram(); });
+  });
+}
+
+function createBlankProgram(level, season){
+  DB.programs[level][season] = { level, season, days: [
+    {day:'Monday', title:'', blocks:[]},
+    {day:'Tuesday', title:'', blocks:[]},
+    {day:'Wednesday', title:'', blocks:[]},
+    {day:'Thursday', title:'', blocks:[]},
+    {day:'Friday', title:'', blocks:[]},
+  ]};
+  save(); renderTrainProgram();
+}
+
+function renderTrainProgram(){
+  const out = document.getElementById('train-output');
+  const prog = DB.programs[trainLevel][trainSeason];
+  const seasonToggle = `
+    <div class="day-tabs">
+      <button data-season="off" class="${trainSeason==='off'?'active':''}">Off-season</button>
+      <button data-season="in" class="${trainSeason==='in'?'active':''}">In-season</button>
+    </div>`;
+
+  if(!prog){
+    out.innerHTML = `
+      <div class="card">
+        ${seasonToggle}
+        <div class="empty">No ${trainLevel} program yet for ${trainSeason==='off'?'off-season':'in-season'}.</div>
+        ${isOwner() ? `<button class="btn secondary" id="btn-create-program">+ Create this program</button>` : ''}
+      </div>`;
+    wireSeasonToggle(out);
+    const createBtn = out.querySelector('#btn-create-program');
+    if(createBtn) createBtn.addEventListener('click', ()=>createBlankProgram(trainLevel, trainSeason));
+    return;
+  }
+
+  const ownerBtn = isOwner() ? `<button class="btn small ${trainEditMode?'':'ghost'}" id="btn-toggle-train-edit" style="margin-top:10px;">${trainEditMode?'Done editing':'Edit this program'}</button>` : '';
+
+  const daysHtml = prog.days.map((day, dayIdx) => {
+    const blocksHtml = day.blocks.map((block, blockIdx) => {
+      const exHtml = block.exercises.map((ex, exIdx) => `
+        <div class="exercise-row">
+          <div class="ex-name">${ex.name}${trainEditMode?`<button class="rm" data-rm-ex="${dayIdx}:${blockIdx}:${exIdx}" style="float:right;">×</button>`:''}</div>
+          ${ex.detail ? `<div class="ex-detail">${ex.detail}</div>` : ''}
+          ${ex.rest ? `<div class="ex-rest">Rest: ${ex.rest}</div>` : ''}
+        </div>`).join('');
+      return `
+        <div style="margin-top:12px;">
+          ${block.title ? `<div style="font-weight:700;font-size:13px;margin-bottom:4px;">${block.title}${block.rounds?` — ${block.rounds} rounds`:''}</div>` : ''}
+          ${exHtml}
+          ${block.roundsNote ? `<div style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;">${block.roundsNote}</div>` : ''}
+          ${block.restNote ? `<div style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;">${block.restNote}</div>` : ''}
+          ${block.notes ? `<div style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;">${block.notes}</div>` : ''}
+          ${trainEditMode ? `<button class="btn small ghost" data-add-ex="${dayIdx}:${blockIdx}" style="margin-top:8px;">+ Add exercise</button>` : ''}
+        </div>`;
+    }).join('');
+    return `
+      <div class="meal">
+        <div class="meal-head"><span class="name">${day.day}${day.title?` — ${day.title}`:''}</span></div>
+        ${blocksHtml || '<div class="empty" style="padding:10px 0;">No blocks yet.</div>'}
+        ${trainEditMode ? `<button class="btn small ghost" data-add-block="${dayIdx}" style="margin-top:10px;">+ Add block</button>` : ''}
+      </div>`;
+  }).join('');
+
+  out.innerHTML = `
+    <div class="card">${seasonToggle}${ownerBtn}</div>
+    <div class="card">${daysHtml}</div>
+  `;
+
+  wireSeasonToggle(out);
+  const editBtn = out.querySelector('#btn-toggle-train-edit');
+  if(editBtn) editBtn.addEventListener('click', ()=>{ trainEditMode = !trainEditMode; renderTrainProgram(); });
+  out.querySelectorAll('[data-rm-ex]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const [dayIdx,blockIdx,exIdx] = btn.dataset.rmEx.split(':').map(Number);
+      DB.programs[trainLevel][trainSeason].days[dayIdx].blocks[blockIdx].exercises.splice(exIdx,1);
+      save(); renderTrainProgram();
+    });
+  });
+  out.querySelectorAll('[data-add-ex]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const [dayIdx,blockIdx] = btn.dataset.addEx.split(':').map(Number);
+      const name = prompt('Exercise name?'); if(!name) return;
+      const detail = prompt('Detail (sets/reps or distance/weight)?') || '';
+      const rest = prompt('Rest? (leave blank if none)') || '';
+      DB.programs[trainLevel][trainSeason].days[dayIdx].blocks[blockIdx].exercises.push({name, detail, rest});
+      save(); renderTrainProgram();
+    });
+  });
+  out.querySelectorAll('[data-add-block]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const dayIdx = +btn.dataset.addBlock;
+      const title = prompt('Block title? (e.g. "Full body weights", "Hyrox section") — leave blank for none') || '';
+      DB.programs[trainLevel][trainSeason].days[dayIdx].blocks.push({title, exercises:[]});
+      save(); renderTrainProgram();
+    });
+  });
+}
+
+function getTrainLogDay(dateStr){
+  if(!DB.trainLog) DB.trainLog = {};
+  if(!DB.trainLog[dateStr]) DB.trainLog[dateStr] = { entries: [] };
+  return DB.trainLog[dateStr];
+}
+
+function renderTrainLog(){
+  const out = document.getElementById('train-output');
+  const day = getTrainLogDay(trainLogDate);
+
+  const entriesHtml = day.entries.map((e,idx)=>`
+    <div class="exercise-row">
+      <div class="ex-name">
+        <input type="checkbox" ${e.done?'checked':''} data-toggle-done="${idx}">
+        ${e.name}
+        <button class="rm" data-rm-train-entry="${idx}" style="float:right;">×</button>
+      </div>
+      ${e.detail ? `<div class="ex-detail">${e.detail}</div>` : ''}
+    </div>`).join('') || '<div class="empty" style="padding:10px 0;">Nothing logged for this day yet.</div>';
+
+  out.innerHTML = `
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <button class="btn ghost small" id="btn-trainlog-prev">‹</button>
+        <div style="text-align:center;flex:1;">
+          <div style="font-weight:700;font-size:15.5px;">${formatLogDateLabel(trainLogDate)}</div>
+          ${trainLogDate!==todayStr() ? `<button class="btn ghost small" id="btn-trainlog-today" style="margin-top:4px;padding:3px 10px;">Jump to today</button>` : ''}
+        </div>
+        <button class="btn ghost small" id="btn-trainlog-next">›</button>
+      </div>
+    </div>
+    <div class="card">
+      ${entriesHtml}
+      <div class="meal-edit-actions" style="margin-top:10px;">
+        <button class="btn small ghost" id="btn-trainlog-add">+ Log exercise</button>
+        <button class="btn small secondary" id="btn-trainlog-copy">Copy today's program</button>
+      </div>
+    </div>
+  `;
+
+  out.querySelector('#btn-trainlog-prev').addEventListener('click', ()=>{ trainLogDate = shiftDateStr(trainLogDate,-1); renderTrainLog(); });
+  out.querySelector('#btn-trainlog-next').addEventListener('click', ()=>{ trainLogDate = shiftDateStr(trainLogDate,1); renderTrainLog(); });
+  const todayBtn = out.querySelector('#btn-trainlog-today');
+  if(todayBtn) todayBtn.addEventListener('click', ()=>{ trainLogDate = todayStr(); renderTrainLog(); });
+
+  out.querySelectorAll('[data-toggle-done]').forEach(cb=>{
+    cb.addEventListener('change', (e)=>{
+      getTrainLogDay(trainLogDate).entries[+cb.dataset.toggleDone].done = e.target.checked;
+      save();
+    });
+  });
+  out.querySelectorAll('[data-rm-train-entry]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      getTrainLogDay(trainLogDate).entries.splice(+btn.dataset.rmTrainEntry, 1);
+      save(); renderTrainLog();
+    });
+  });
+  out.querySelector('#btn-trainlog-add').addEventListener('click', ()=>{
+    const name = prompt('What did you do?'); if(!name) return;
+    const detail = prompt('Sets/reps/weight or distance actually done? (optional)') || '';
+    getTrainLogDay(trainLogDate).entries.push({name, detail, done:true});
+    save(); renderTrainLog();
+  });
+  out.querySelector('#btn-trainlog-copy').addEventListener('click', ()=>{
+    const [y,m,d] = trainLogDate.split('-').map(Number);
+    const weekday = new Date(y,m-1,d).toLocaleDateString('en-US',{weekday:'long'});
+    const prog = DB.programs[trainLevel][trainSeason];
+    if(!prog){ toast('Pick a program on the Program tab first'); return; }
+    const progDay = prog.days.find(dd=>dd.day===weekday);
+    if(!progDay || !progDay.blocks.length){ toast('No program session found for ' + weekday); return; }
+    const entries = [];
+    progDay.blocks.forEach(b=>{ b.exercises.forEach(ex=>{ entries.push({name:ex.name, detail:ex.detail, done:false}); }); });
+    if(!entries.length){ toast('That program day has no exercises yet'); return; }
+    const day = getTrainLogDay(trainLogDate);
+    day.entries = day.entries.concat(entries);
+    save(); renderTrainLog();
+    toast('Copied ' + entries.length + ' exercises from ' + weekday + "'s program");
+  });
+}
+
+/* =========================================================================
+   RENDER: SHOES VIEW — tier list, owner-editable
+   ========================================================================= */
+function renderShoes(){
+  const out = document.getElementById('shoes-output');
+  document.getElementById('btn-add-shoe').style.display = isOwner() ? 'block' : 'none';
+  if(!DB.shoes.length){
+    out.innerHTML = `<div class="card"><div class="empty">No shoes ranked yet.</div></div>`;
+    return;
+  }
+  const tiers = ['S','A','B','C','D'];
+  let html = '';
+  tiers.forEach(t=>{
+    const shoesInTier = DB.shoes.filter(s=>s.tier===t);
+    if(!shoesInTier.length) return;
+    html += `<div class="cat-title">${t} Tier</div><div class="card">`;
+    shoesInTier.forEach(s=>{
+      html += `
+        <div class="food-row">
+          <div>
+            <div class="fname">${s.name}</div>
+            ${s.notes ? `<div class="fmacro" style="font-family:inherit;font-size:12px;">${s.notes}</div>` : ''}
+          </div>
+          ${isOwner() ? `<button class="btn danger small" data-rm-shoe="${s.id}">Remove</button>` : ''}
+        </div>`;
+    });
+    html += `</div>`;
+  });
+  out.innerHTML = html;
+  out.querySelectorAll('[data-rm-shoe]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      DB.shoes = DB.shoes.filter(s=>s.id!==btn.dataset.rmShoe);
+      save(); renderShoes();
+    });
+  });
+}
+
+function promptAddShoe(){
+  const name = prompt('Shoe name?'); if(!name) return;
+  let tier = (prompt('Tier? (S, A, B, C, or D)', 'A') || '').toUpperCase();
+  if(!['S','A','B','C','D'].includes(tier)){ toast('Tier must be S, A, B, C, or D'); return; }
+  const notes = prompt('Notes? (why this tier — optional)') || '';
+  DB.shoes.push({id:'shoe_'+Date.now(), name, tier, notes});
+  save(); renderShoes();
+  toast('Added ' + name);
+}
+
+/* =========================================================================
    RENDER: FOODS VIEW
    ========================================================================= */
 function renderFoods(filter=''){
@@ -1278,6 +1740,8 @@ function showView(name){
   if(name==='log') renderLog();
   if(name==='shop'){ renderShop(); renderAffiliate(); }
   if(name==='foods'){ renderFoods(document.getElementById('food-search').value); renderAffiliate(); }
+  if(name==='train') renderTrain();
+  if(name==='shoes') renderShoes();
   if(name==='upgrade') renderUpgradeView();
   if(name!=='scan') stopScanner();
   renderAdSlots();
@@ -1337,6 +1801,10 @@ document.getElementById('btn-clear-checks').addEventListener('click', ()=>{
 
 document.getElementById('food-search').addEventListener('input', (e)=>renderFoods(e.target.value));
 document.getElementById('btn-add-food').addEventListener('click', promptAddFood);
+
+document.getElementById('train-subtab-program').addEventListener('click', ()=>{ trainSubtab = 'program'; renderTrain(); });
+document.getElementById('train-subtab-log').addEventListener('click', ()=>{ trainSubtab = 'log'; renderTrain(); });
+document.getElementById('btn-add-shoe').addEventListener('click', promptAddShoe);
 
 document.getElementById('btn-scan-toggle').addEventListener('click', ()=>{
   scanning ? stopScanner() : startScanner();
