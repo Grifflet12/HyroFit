@@ -252,6 +252,35 @@ canvas#dial{flex-shrink:0;}
 .exercise-row .ex-detail{color:var(--ink-soft);font-size:12.5px;margin-top:1px;}
 .exercise-row .ex-rest{color:var(--ink-soft);font-size:11px;font-family:'IBM Plex Mono',monospace;margin-top:2px;}
 .exercise-row input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px;vertical-align:middle;}
+
+/* ---------- Program day accordion ---------- */
+.day-accordion{border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:10px;background:var(--card);box-shadow:var(--shadow);}
+.day-accordion-header{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 16px;background:none;border:none;cursor:pointer;text-align:left;}
+.day-accordion-header .day-badge{
+  width:38px;height:38px;border-radius:11px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:#fff;background:var(--ink-soft);letter-spacing:.02em;
+}
+.day-accordion-header .day-text{flex:1;min-width:0;}
+.day-accordion-header .day-name{font-weight:700;font-size:14.5px;}
+.day-accordion-header .day-subtitle{font-size:12px;color:var(--ink-soft);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.day-accordion-header .day-meta{font-size:10.5px;color:var(--ink-soft);margin-top:3px;display:flex;gap:6px;flex-wrap:wrap;}
+.day-accordion-header .chev{width:19px;height:19px;stroke:var(--ink-soft);stroke-width:2.2;fill:none;transition:transform .25s ease;flex-shrink:0;}
+.day-accordion.expanded .chev{transform:rotate(180deg);stroke:var(--primary);}
+.day-accordion.expanded .day-accordion-header{border-bottom:1px solid var(--line);}
+.day-accordion-body{max-height:0;overflow:hidden;transition:max-height .35s ease;}
+.day-accordion.expanded .day-accordion-body{max-height:3000px;}
+.day-accordion-body-inner{padding:4px 16px 16px;}
+
+.train-block{border-left:3px solid var(--line);padding-left:12px;margin-top:14px;}
+.train-block.type-weights{border-left-color:var(--primary);}
+.train-block.type-hyrox{border-left-color:var(--carb);}
+.train-block.type-cardio{border-left-color:var(--fat);}
+.train-block-title{font-weight:700;font-size:13px;margin-bottom:2px;}
+.train-block-badge{display:inline-block;font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;}
+.train-block-badge.type-weights{background:var(--primary-tint);color:var(--primary-dark);}
+.train-block-badge.type-hyrox{background:#fef3c7;color:#92400e;}
+.train-block-badge.type-cardio{background:#d1fae5;color:#065f46;}
 .meal-edit-panel{background:var(--tint);border:1px solid var(--line);border-radius:12px;padding:13px;margin-top:8px;}
 .food-search-input{margin:0 0 6px;}
 .food-result-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;}
@@ -1199,13 +1228,19 @@ let trainSeason = 'off';
 let trainSubtab = 'program';
 let trainEditMode = false;
 let trainLogDate = todayStr();
+let expandedTrainDays = new Set(); // which day accordions are open, for the current level/season
 
 function renderTrain(){
   const levelTabsEl = document.getElementById('train-level-tabs');
   const levels = ['beginner','intermediate','advanced'];
   levelTabsEl.innerHTML = levels.map(l=>`<button data-level="${l}" class="${l===trainLevel?'active':''}">${l.charAt(0).toUpperCase()+l.slice(1)}</button>`).join('');
   levelTabsEl.querySelectorAll('button').forEach(btn=>{
-    btn.addEventListener('click', ()=>{ trainLevel = btn.dataset.level; renderTrain(); });
+    btn.addEventListener('click', ()=>{
+      if(btn.dataset.level === trainLevel) return;
+      trainLevel = btn.dataset.level;
+      expandedTrainDays = new Set();
+      renderTrain();
+    });
   });
 
   document.getElementById('train-subtab-program').className = 'btn small' + (trainSubtab==='program' ? '' : ' ghost');
@@ -1217,7 +1252,12 @@ function renderTrain(){
 
 function wireSeasonToggle(out){
   out.querySelectorAll('[data-season]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{ trainSeason = btn.dataset.season; renderTrainProgram(); });
+    btn.addEventListener('click', ()=>{
+      if(btn.dataset.season === trainSeason) return;
+      trainSeason = btn.dataset.season;
+      expandedTrainDays = new Set();
+      renderTrainProgram();
+    });
   });
 }
 
@@ -1232,11 +1272,21 @@ function createBlankProgram(level, season){
   save(); renderTrainProgram();
 }
 
+function blockType(block){
+  const t = (block.title||'').toLowerCase().trim();
+  if(!t) return 'cardio';
+  if(t.includes('hyrox') || t.includes('round') || t.includes('speed')) return 'hyrox';
+  return 'weights';
+}
+function blockTypeLabel(type){
+  return type==='hyrox' ? 'Hyrox' : type==='cardio' ? 'Cardio' : 'Weights';
+}
+
 function renderTrainProgram(){
   const out = document.getElementById('train-output');
   const prog = DB.programs[trainLevel][trainSeason];
   const seasonToggle = `
-    <div class="day-tabs">
+    <div class="day-tabs" style="margin-bottom:0;">
       <button data-season="off" class="${trainSeason==='off'?'active':''}">Off-season</button>
       <button data-season="in" class="${trainSeason==='in'?'active':''}">In-season</button>
     </div>`;
@@ -1254,10 +1304,18 @@ function renderTrainProgram(){
     return;
   }
 
-  const ownerBtn = isOwner() ? `<button class="btn small ${trainEditMode?'':'ghost'}" id="btn-toggle-train-edit" style="margin-top:10px;">${trainEditMode?'Done editing':'Edit this program'}</button>` : '';
+  const ownerBtn = isOwner() ? `<button class="btn small ${trainEditMode?'':'ghost'}" id="btn-toggle-train-edit" style="margin-top:12px;">${trainEditMode?'Done editing':'Edit this program'}</button>` : '';
 
   const daysHtml = prog.days.map((day, dayIdx) => {
+    const isExpanded = expandedTrainDays.has(dayIdx);
+    const dayAbbrev = day.day.slice(0,3).toUpperCase();
+    const blockTypes = day.blocks.map(blockType);
+    const metaChips = day.blocks.length
+      ? [...new Set(blockTypes)].map(t=>`<span class="train-block-badge type-${t}" style="margin-bottom:0;">${blockTypeLabel(t)}</span>`).join('')
+      : '';
+
     const blocksHtml = day.blocks.map((block, blockIdx) => {
+      const type = blockType(block);
       const exHtml = block.exercises.map((ex, exIdx) => `
         <div class="exercise-row">
           <div class="ex-name">${ex.name}${trainEditMode?`<button class="rm" data-rm-ex="${dayIdx}:${blockIdx}:${exIdx}" style="float:right;">×</button>`:''}</div>
@@ -1265,8 +1323,9 @@ function renderTrainProgram(){
           ${ex.rest ? `<div class="ex-rest">Rest: ${ex.rest}</div>` : ''}
         </div>`).join('');
       return `
-        <div style="margin-top:12px;">
-          ${block.title ? `<div style="font-weight:700;font-size:13px;margin-bottom:4px;">${block.title}${block.rounds?` — ${block.rounds} rounds`:''}</div>` : ''}
+        <div class="train-block type-${type}">
+          <span class="train-block-badge type-${type}">${blockTypeLabel(type)}</span>
+          ${block.title ? `<div class="train-block-title">${block.title}${block.rounds?` — ${block.rounds} rounds`:''}</div>` : ''}
           ${exHtml}
           ${block.roundsNote ? `<div style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;">${block.roundsNote}</div>` : ''}
           ${block.restNote ? `<div style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;">${block.restNote}</div>` : ''}
@@ -1274,20 +1333,41 @@ function renderTrainProgram(){
           ${trainEditMode ? `<button class="btn small ghost" data-add-ex="${dayIdx}:${blockIdx}" style="margin-top:8px;">+ Add exercise</button>` : ''}
         </div>`;
     }).join('');
+
     return `
-      <div class="meal">
-        <div class="meal-head"><span class="name">${day.day}${day.title?` — ${day.title}`:''}</span></div>
-        ${blocksHtml || '<div class="empty" style="padding:10px 0;">No blocks yet.</div>'}
-        ${trainEditMode ? `<button class="btn small ghost" data-add-block="${dayIdx}" style="margin-top:10px;">+ Add block</button>` : ''}
+      <div class="day-accordion ${isExpanded?'expanded':''}">
+        <button class="day-accordion-header" data-toggle-day="${dayIdx}">
+          <span class="day-badge">${dayAbbrev}</span>
+          <span class="day-text">
+            <span class="day-name">${day.day}</span>
+            <div class="day-subtitle">${day.title || 'Rest / no session'}</div>
+            ${metaChips ? `<div class="day-meta">${metaChips}</div>` : ''}
+          </span>
+          <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="day-accordion-body">
+          <div class="day-accordion-body-inner">
+            ${blocksHtml || '<div class="empty" style="padding:10px 0;">No blocks yet.</div>'}
+            ${trainEditMode ? `<button class="btn small ghost" data-add-block="${dayIdx}" style="margin-top:10px;">+ Add block</button>` : ''}
+          </div>
+        </div>
       </div>`;
   }).join('');
 
   out.innerHTML = `
     <div class="card">${seasonToggle}${ownerBtn}</div>
-    <div class="card">${daysHtml}</div>
+    ${daysHtml}
   `;
 
   wireSeasonToggle(out);
+  out.querySelectorAll('[data-toggle-day]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const idx = +btn.dataset.toggleDay;
+      if(expandedTrainDays.has(idx)) expandedTrainDays.delete(idx);
+      else expandedTrainDays.add(idx);
+      renderTrainProgram();
+    });
+  });
   const editBtn = out.querySelector('#btn-toggle-train-edit');
   if(editBtn) editBtn.addEventListener('click', ()=>{ trainEditMode = !trainEditMode; renderTrainProgram(); });
   out.querySelectorAll('[data-rm-ex]').forEach(btn=>{
@@ -1299,7 +1379,8 @@ function renderTrainProgram(){
     });
   });
   out.querySelectorAll('[data-add-ex]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
       const [dayIdx,blockIdx] = btn.dataset.addEx.split(':').map(Number);
       const name = prompt('Exercise name?'); if(!name) return;
       const detail = prompt('Detail (sets/reps or distance/weight)?') || '';
